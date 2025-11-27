@@ -4,11 +4,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { typeormConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
+import { SeedModule } from './modules/seed/seed.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync(typeormConfig),
+    SeedModule,
     AuthModule,
     UserModule,
   ],

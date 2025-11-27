@@ -36,29 +36,29 @@ export class AllExceptionFilter implements ExceptionFilter {
         message =
           exceptionResponseObj.message ||
           exceptionResponseObj.error ||
-          'Lỗi không xác định';
+          'Unknown error';
 
         //Lỗi validate DTO
         if (Array.isArray(exceptionResponseObj.message)) {
-          message = 'Dữ liệu không hợp lệ';
+          message = 'Input data validation failed';
           error = exceptionResponseObj.message;
         }
       } else {
-        message = 'Lỗi không xác định';
+        message = 'Unknown error';
       }
 
       if (status === Number(HttpStatus.UNAUTHORIZED)) {
         if (message === 'Unauthorized') {
-          message = 'Người dùng chưa đăng nhập hoặc token không hợp lệ';
+          message = 'User is not authenticated or invalid token';
         }
       }
       if (status === Number(HttpStatus.FORBIDDEN)) {
-        message = 'Người dùng không có quyền truy cập chức năng này';
+        message = 'User does not have permission to access this resource';
       }
     } else {
       // Lỗi không mong muốn (không biết trước - lỗi hệ thống)
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Lỗi hệ thống, vui lòng thử lại sau';
+      message = 'System encountered an unexpected error';
       this.logger.error(exception);
     }
 

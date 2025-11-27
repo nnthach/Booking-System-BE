@@ -6,7 +6,16 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 export class AuthService {
   constructor(private readonly userService: UserService) {}
 
-  register(createUserDto: CreateUserDto) {
-    return 'This action register a new auth';
+  async register(createUserDto: CreateUserDto) {
+    try {
+      const user = await this.userService.create(createUserDto);
+
+      return {
+        message: 'Registration successful. Let open email to active account',
+        email: user?.email,
+      };
+    } catch (error) {
+      console.error('Error registering user:', error);
+    }
   }
 }
