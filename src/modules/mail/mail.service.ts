@@ -61,4 +61,46 @@ export class MailService {
       }
     }
   }
+
+  async sendEmailWelcomeStaff(
+    fullName: string,
+    email: string,
+    password: string,
+  ) {
+    try {
+      const templatePath = path.join(
+        process.cwd(),
+        'src',
+        'modules',
+        'mail',
+        'html',
+        'EmailWelcomeStaff.html',
+      );
+      let html = await readFile(templatePath, 'utf-8');
+
+      html = html
+        .replace(/\$\{fullName\}/g, fullName)
+        .replace(/\$\{email\}/g, email)
+        .replace(/\$\{password\}/g, password)
+        .replace(
+          /\$\{#dates.year\(date\)\}/g,
+          new Date().getFullYear().toString(),
+        );
+
+      await sgMail.send({
+        to: email,
+        from: this.fromEmail || '',
+        subject: 'Welcome to Salon',
+        html: html,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          error.message || 'Send email welcome failed',
+        );
+      } else {
+        throw new InternalServerErrorException('Unexpected error');
+      }
+    }
+  }
 }

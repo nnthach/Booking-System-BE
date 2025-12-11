@@ -1,4 +1,9 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateUserDto } from './create-user.dto';
+import { StringNotRequired } from 'src/common/decorators/swagger.decorator';
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export class UpdateUserDto {
+  @StringNotRequired('Fullname')
+  fullName: string;
+
+  @StringNotRequired('Password')
+  password: string;
+}

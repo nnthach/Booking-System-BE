@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Welcome Staff - Salon System</title>
+    </head>
+    <body
+        style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, sans-serif;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+            border="0" style="background-color:#f4f4f4;">
+            <tr>
+                <td style="padding:40px 20px;">
+                    <table role="presentation" width="100%" cellspacing="0"
+                        cellpadding="0" border="0"
+                        style="max-width:600px; margin:auto; background:#ffffff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.06); overflow:hidden;">
+
+                        <!-- Header -->
+                        <tr>
+                            <td
+                                style="background:#111827; padding:35px 40px; text-align:center;">
+                                <h1
+                                    style="color:#ffffff; margin:0; font-size:30px; font-weight:700; letter-spacing:-0.5px;">
+                                    amply
+                                </h1>
+                            </td>
+                        </tr>
+
+                        <!-- Content -->
+                        <tr>
+                            <td style="padding:40px;">
+                                <h2
+                                    style="margin:0 0 20px; font-size:24px; color:#1f2937; font-weight:600;">
+                                    Welcome <span
+                                        style="color:#3b82f6;">${fullName}</span> 🎉
+                                </h2>
+
+                                <p
+                                    style="margin:0 0 18px; font-size:16px; color:#4b5563; line-height:24px;">
+                                    You’ve been successfully added as a
+                                    <strong>Staff Member</strong> in our Salon
+                                    Management System.
+                                </p>
+
+                                <p
+                                    style="margin:0 0 18px; font-size:16px; color:#4b5563;">
+                                    Below are your login credentials:
+                                </p>
+
+                                <!-- Credentials Box -->
+                                <div
+                                    style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:20px; margin:25px 0;">
+                                    <p
+                                        style="margin:0; font-size:15px; color:#374151; line-height:24px;">
+                                        <strong>Email:</strong> ${email}
+                                    </p>
+                                    <p
+                                        style="margin:8px 0 0; font-size:15px; color:#374151;">
+                                        <strong>Password:</strong> ${password}
+                                    </p>
+                                </div>
+
+                                <p
+                                    style="margin:0 0 30px; font-size:16px; color:#4b5563;">
+                                    Please log in and change your password after
+                                    first use for security.
+                                </p>
+
+                                <div
+                                    style="margin-top:40px; border-top:1px solid #e5e7eb; padding-top:25px;">
+                                    <p
+                                        style="margin:0; font-size:16px; color:#4b5563; line-height:24px;">
+                                        Welcome aboard!<br />
+                                        <strong>Salon Management Team</strong>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Footer -->
+                        <tr>
+                            <td
+                                style="background:#f8fafc; padding:30px 40px; text-align:center;">
+                                <p
+                                    style="margin:0 0 10px; font-size:13px; color:#6b7280;">
+                                    This email was sent to
+                                    <strong>${email}</strong>.
+                                </p>
+
+                                <p style="margin:0 0 15px;">
+                                    <a href="#"
+                                        style="color:#3b82f6; text-decoration:none; margin-right:15px;">Unsubscribe</a>
+                                    <a href="#"
+                                        style="color:#3b82f6; text-decoration:none; margin-right:15px;">Support</a>
+                                    <a href="#"
+                                        style="color:#3b82f6; text-decoration:none;">Privacy
+                                        Policy</a>
+                                </p>
+
+                                <p
+                                    style="margin:15px 0 0; font-size:12px; color:#9ca3af;">
+                                    © ${#dates.year(date)} amply. All rights
+                                    reserved.
+                                </p>
+                            </td>
+                        </tr>
+
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

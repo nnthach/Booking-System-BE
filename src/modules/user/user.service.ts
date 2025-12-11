@@ -3,6 +3,7 @@ import {
   HttpException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -12,12 +13,17 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserStatus } from 'src/enums/user.enum';
 import { GenerateHelpers } from 'src/utils/helpers';
+import { CreateStaffDto } from '../staff/dto/create-staff.dto';
+import { Staff } from 'src/entities/staff.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectRepository(Staff)
+    private staffRepository: Repository<Staff>,
   ) {}
 
   async findUserByEmail(email: string): Promise<User | undefined> {
@@ -29,7 +35,7 @@ export class UserService {
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new InternalServerErrorException('Not found user');
+      throw new NotFoundException('Not found user');
     }
   }
 
@@ -64,19 +70,86 @@ export class UserService {
     }
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async createStaff(
+    createStaffDto: CreateStaffDto,
+  ): Promise<{ staff: User; password: string }> {
+    try {
+      const isExistingUser = await this.findUserByEmail(createStaffDto.email);
+
+      if (isExistingUser) {
+        throw new BadRequestException('Email already in use');
+      }
+
+      const hashedPassword = await bcrypt.hash(createStaffDto.password, 10);
+
+      const user = this.userRepository.create({
+        ...createStaffDto,
+        password: hashedPassword,
+        roleId: 3,
+        status: UserStatus.VERIFIED,
+      });
+
+      const saveStaff = await this.userRepository.save(user);
+      return { staff: saveStaff, password: createStaffDto.password };
+    } catch (error: unknown) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Create user failed');
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findAll() {
+    return await this.userRepository.find();
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findOne(id: number) {
+    return await this.userRepository.find({
+      where: { id },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('Not found user');
+    }
+
+    const isEmpty = Object.fromEntries(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      Object.entries(updateUserDto).filter(([_, value]) => value !== undefined),
+    );
+
+    console.log('update user isEmpty', isEmpty);
+
+    if (!Object.keys(isEmpty).length) {
+      throw new BadRequestException('Not any value to update');
+    }
+
+    let hashedPassword = '';
+    if (updateUserDto.password) {
+      hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
+    Object.assign(user, { ...updateUserDto, password: hashedPassword });
+
+    return await this.userRepository.save(user);
+  }
+
+  async remove(id: number) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not found user');
+    }
+    if (user.roleId === 3) {
+      await this.staffRepository.delete({ userId: user.id });
+    }
+    await this.userRepository.delete(id);
+
+    return { message: 'Delete account success' };
   }
 }

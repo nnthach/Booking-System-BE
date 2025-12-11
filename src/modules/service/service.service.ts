@@ -89,6 +89,7 @@ export class ServiceService {
       }
     }
 
+
     Object.assign(service, updateServiceDto); // đưa dữ liệu dto vô entity
 
     await this.serviceRepository.save(service);
