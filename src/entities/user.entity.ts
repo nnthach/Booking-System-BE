@@ -7,8 +7,12 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Role } from './role.entity';
+import { Booking } from './booking.entity';
+import { Staff } from './staff.entity';
 
 @Entity('users')
 export class User {
@@ -22,13 +26,13 @@ export class User {
   email: string;
 
   @Column({ nullable: true })
-  firstName: string;
-
-  @Column({ nullable: true })
-  lastName: string;
-
-  @Column({ nullable: true })
   fullName: string;
+
+  @Column({ nullable: true })
+  phoneNumber: string;
+
+  @Column({ nullable: true })
+  avatar: string;
 
   @Column({ nullable: true })
   otp: string;
@@ -39,10 +43,10 @@ export class User {
   @Column()
   roleId: number;
 
-  @ManyToOne(() => Role)
-  @JoinColumn({ name: 'roleId' })
+  @ManyToOne(() => Role) // muốn đi đến bảng nào
+  @JoinColumn({ name: 'roleId' }) // cầm cái FK trỏ đến bảng đó
   role: Role;
-  
+
   @Column({
     type: 'enum',
     enum: UserStatus,
@@ -50,9 +54,21 @@ export class User {
   })
   status: UserStatus;
 
+  @Column({ nullable: true, type: 'varchar' })
+  emailVerificationToken: string | null;
+
+  @Column({ nullable: true, type: 'datetime' })
+  emailVerificationExpire: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Booking, (booking) => booking.customer)
+  bookingsUser: Booking[]; // cánh cửa nhìn từ User qua Bookings
+
+  @OneToOne(() => Staff, (staff) => staff.user)
+  staff: Staff;
 }

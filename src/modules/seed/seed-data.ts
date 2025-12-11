@@ -60,5 +60,42 @@ export const seedData = {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
+
+    {
+      id: 4,
+      password: '123456',
+      email: 'staff2@gmail.com',
+      fullName: 'Trần Văn A',
+      status: UserStatus.VERIFIED,
+      avatar:
+        'https://img.freepik.com/premium-vector/illustrations_995281-35700.jpg',
+      roleId: 3,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ],
+
+  staffs: [
+    {
+      id: 1,
+      userId: 3,
+      specialty: 'Undercut',
+      rating: 0,
+      totalBooking: 0,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+
+    {
+      id: 2,
+      userId: 4,
+      specialty: 'Side-part',
+      rating: 0,
+      totalBooking: 0,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
   ],
 };

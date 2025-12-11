@@ -1,11 +1,17 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from 'src/enums/role.enum';
+import { UserStatus } from 'src/enums/user.enum';
+import { GenerateHelpers } from 'src/utils/helpers';
 
 @Injectable()
 export class UserService {
@@ -20,7 +26,10 @@ export class UserService {
 
       return user ?? undefined;
     } catch (error) {
-      console.error('Error finding user by email:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Not found user');
     }
   }
 
@@ -34,17 +43,24 @@ export class UserService {
 
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
+      const { token: emailVerificationToken, expire: emailVerificationExpire } =
+        GenerateHelpers.generateEmailVerificationToken();
+
       const user = this.userRepository.create({
         ...createUserDto,
         password: hashedPassword,
         roleId: 2,
+        status: UserStatus.PENDING_VERIFICATION,
+        emailVerificationToken,
+        emailVerificationExpire,
       });
 
-      console.log('Creating user:', user);
-
       return await this.userRepository.save(user);
-    } catch (error) {
-      console.error('Error creating user:', error);
+    } catch (error: unknown) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Create user failed');
     }
   }
 

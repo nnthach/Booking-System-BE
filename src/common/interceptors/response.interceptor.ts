@@ -33,7 +33,6 @@ export class TransformInterceptor<T>
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<IApiResponse<T>> {
-    console.log('>>> BEFORE');
     const request = context.switchToHttp().getRequest();
 
     return next.handle().pipe(
