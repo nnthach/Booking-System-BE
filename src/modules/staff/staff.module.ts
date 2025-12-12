@@ -8,14 +8,22 @@ import { WorkingSchedule } from 'src/entities/work-schedule.entity';
 import { StaffSlot } from 'src/entities/staff-slot.entity';
 import { UserModule } from '../user/user.module';
 import { MailModule } from '../mail/mail.module';
+import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Staff, StaffSlot, User, WorkingSchedule]),
+    TypeOrmModule.forFeature([
+      Staff,
+      StaffSlot,
+      User,
+      WorkingSchedule,
+      StaffWorkCalendar,
+    ]),
     UserModule,
     MailModule,
   ],
   controllers: [StaffController],
   providers: [StaffService],
+  exports: [StaffService],
 })
 export class StaffModule {}

@@ -10,6 +10,7 @@ import { Staff } from 'src/entities/staff.entity';
 import { Repository } from 'typeorm';
 import { MailService } from '../mail/mail.service';
 import { User } from 'src/entities/user.entity';
+import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
 
 @Injectable()
 export class StaffService {
@@ -18,6 +19,9 @@ export class StaffService {
     private readonly mailService: MailService,
     @InjectRepository(Staff)
     private staffRepository: Repository<Staff>,
+
+    @InjectRepository(StaffWorkCalendar)
+    private staffWorkCalendarRepository: Repository<StaffWorkCalendar>,
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -62,7 +66,7 @@ export class StaffService {
   }
 
   async findOne(id: number) {
-    return await this.staffRepository.findOne({
+    const staff = await this.staffRepository.findOne({
       where: { id },
       relations: ['user'],
       select: {
@@ -75,6 +79,54 @@ export class StaffService {
         },
       },
     });
+    if (!staff) {
+      throw new NotFoundException('Not found staff');
+    }
+    return staff;
+  }
+
+  async getStaffSchedule(staffId: number) {
+    const staff = await this.staffRepository.findOne({
+      where: { id: staffId },
+      relations: {
+        user: true,
+        staffWorkCalendar: {
+          workSchedule: true,
+        },
+      },
+      select: {
+        id: true,
+        user: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+        staffWorkCalendar: {
+          id: true,
+          workDate: true,
+          status: true,
+          workSchedule: {
+            dayOfWeek: true,
+            startTime: true,
+            endTime: true,
+          },
+        },
+      },
+    });
+
+    if (!staff) {
+      throw new NotFoundException(`Staff with ID ${staffId} not found`);
+    }
+
+    // count working day
+    const totalWorkingDays: number = staff.staffWorkCalendar
+      ? staff.staffWorkCalendar.length
+      : 0;
+
+    return {
+      ...staff,
+      totalWorkingDays,
+    };
   }
 
   async remove(id: number) {

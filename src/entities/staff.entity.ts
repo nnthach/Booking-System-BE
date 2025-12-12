@@ -9,8 +9,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { WorkingSchedule } from './work-schedule.entity';
 import { StaffSlot } from './staff-slot.entity';
+import { StaffWorkCalendar } from './staff-work-calendar.entity';
 
 @Entity('staffs')
 export class Staff {
@@ -42,8 +42,11 @@ export class Staff {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => WorkingSchedule, (workingSchedule) => workingSchedule.staff)
-  workingSchedule: WorkingSchedule[];
+  @OneToMany(
+    () => StaffWorkCalendar,
+    (staffWorkCalendar) => staffWorkCalendar.staff,
+  )
+  staffWorkCalendar: StaffWorkCalendar[];
 
   @OneToMany(() => StaffSlot, (staffSlot) => staffSlot.staff)
   staffSlot: StaffSlot[];

@@ -2,40 +2,43 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Staff } from './staff.entity';
+import { StaffWorkCalendar } from './staff-work-calendar.entity';
+import { WorkScheduleStatus } from 'src/enums/workSchedule';
 
 @Entity('working-schedule')
 export class WorkingSchedule {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  staffId: number;
-
-  @ManyToOne(() => Staff, (staff) => staff.workingSchedule)
-  @JoinColumn({ name: 'staffId' })
-  staff: Staff;
-
   @Column({ nullable: true })
   dayOfWeek: number;
 
-  @Column({ nullable: true })
-  startTime: Date;
+  @Column({ type: 'time', nullable: true })
+  startTime: string;
 
-  @Column({ nullable: true })
-  endTime: Date;
+  @Column({ type: 'time', nullable: true })
+  endTime: string;
 
-  @Column({ nullable: true, default: true })
-  isActive: boolean;
+  @Column({
+    type: 'enum',
+    enum: WorkScheduleStatus,
+    default: WorkScheduleStatus.AVAILABLE,
+  })
+  status: WorkScheduleStatus;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(
+    () => StaffWorkCalendar,
+    (staffWorkCalendar) => staffWorkCalendar.workSchedule,
+  )
+  staffWorkCalendar: StaffWorkCalendar[];
 }

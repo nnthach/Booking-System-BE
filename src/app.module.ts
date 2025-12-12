@@ -14,6 +14,7 @@ import { StaffModule } from './modules/staff/staff.module';
 import { StaffSlotModule } from './modules/staff-slot/staff-slot.module';
 import { TimeSlotModule } from './modules/time-slot/time-slot.module';
 import { WorkingScheduleModule } from './modules/working-schedule/working-schedule.module';
+import { StaffWorkCalendarModule } from './modules/staff-work-calendar/staff-work-calendar.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { WorkingScheduleModule } from './modules/working-schedule/working-schedu
     StaffSlotModule,
     TimeSlotModule,
     WorkingScheduleModule,
+    StaffWorkCalendarModule,
   ],
   controllers: [],
   providers: [],

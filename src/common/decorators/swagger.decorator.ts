@@ -87,7 +87,10 @@ export const BooleanNotRequired = (name: string) =>
 
 export const EnumRequired = (name: string, enumType: object) =>
   applyDecorators(
-    ApiProperty({ required: true, enum: enumType }),
+    ApiProperty({
+      required: true,
+      enum: enumType,
+    }),
     IsEnum(enumType, {
       message: `${name} must be: ${Object.values(enumType).join(', ')}`,
     }),

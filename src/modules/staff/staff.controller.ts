@@ -21,6 +21,11 @@ export class StaffController {
     return this.staffService.findOne(+id);
   }
 
+  @Get(':staffId/schedule')
+  getStaffSchedule(@Param('staffId') staffId: string) {
+    return this.staffService.getStaffSchedule(+staffId);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.staffService.remove(+id);
