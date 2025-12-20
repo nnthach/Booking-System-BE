@@ -20,6 +20,9 @@ export class Service {
   @Column({ nullable: true })
   description: string;
 
+  @Column({ nullable: true })
+  image: string;
+
   @Column({ default: true })
   status: boolean;
 

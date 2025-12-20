@@ -1,11 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateStaffSlotDto } from './dto/create-staff-slot.dto';
 import { UpdateStaffSlotDto } from './dto/update-staff-slot.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { StaffSlot } from 'src/entities/staff-slot.entity';
+import { Between, Repository } from 'typeorm';
+import { TimeSlotService } from '../time-slot/time-slot.service';
 
 @Injectable()
 export class StaffSlotService {
-  create(createStaffSlotDto: CreateStaffSlotDto) {
-    return 'This action adds a new staffSlot';
+  constructor(
+    @InjectRepository(StaffSlot)
+    private staffSlotRepository: Repository<StaffSlot>,
+
+    private readonly timeSlotService: TimeSlotService,
+  ) {}
+
+  // tạo staffSlot khi có booking
+  async create(createStaffSlotDto: CreateStaffSlotDto) {
+    const timeSlot = await this.timeSlotService.findOne(
+      createStaffSlotDto.timeSlotId,
+    );
+
+    if (!timeSlot) {
+      throw new BadRequestException('Time slot is not exist');
+    }
+    const createStaffSlot = this.staffSlotRepository.create(createStaffSlotDto);
+
+    return await this.staffSlotRepository.save(createStaffSlot);
   }
 
   findAll() {
@@ -14,6 +35,33 @@ export class StaffSlotService {
 
   findOne(id: number) {
     return `This action returns a #${id} staffSlot`;
+  }
+
+  // tìm 1 staff đi làm 1 ngày nào đó
+  async findOneByStaffId(
+    staffId: number,
+    timeSlotId: number,
+    slotDate: string,
+  ) {
+    if (!slotDate || !timeSlotId || !staffId) {
+      throw new BadRequestException('Missing field required');
+    }
+
+    const startOfDay = new Date(slotDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(slotDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const staff = await this.staffSlotRepository.findOne({
+      where: {
+        staffId,
+        timeSlotId,
+        slotDate: Between(startOfDay, endOfDay),
+      },
+    });
+
+    return staff;
   }
 
   update(id: number, updateStaffSlotDto: UpdateStaffSlotDto) {

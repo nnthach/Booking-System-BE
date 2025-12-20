@@ -41,13 +41,16 @@ export class Booking {
   })
   status: BookingStatus;
 
-  @Column()
+  @Column({ nullable: true })
   note: string;
 
   @Column({ type: 'timestamp', nullable: true })
   checkInTime: Date;
 
-  @Column()
+  @Column({ type: 'date', nullable: true })
+  bookingDate: Date;
+
+  @Column({ nullable: true })
   totalPrice: number;
 
   @CreateDateColumn()

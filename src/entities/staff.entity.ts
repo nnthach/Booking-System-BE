@@ -27,6 +27,9 @@ export class Staff {
   @Column({ nullable: true })
   specialty: string;
 
+  @Column({ nullable: true })
+  avatar: string;
+
   @Column({ nullable: true, default: 0 })
   rating: number;
 

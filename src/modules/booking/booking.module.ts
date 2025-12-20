@@ -4,9 +4,17 @@ import { BookingController } from './booking.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Booking } from 'src/entities/booking.entity';
 import { Transaction } from 'src/entities/transaction.entity';
+import { StaffSlotModule } from '../staff-slot/staff-slot.module';
+import { StaffWorkCalendarModule } from '../staff-work-calendar/staff-work-calendar.module';
+import { TimeSlotModule } from '../time-slot/time-slot.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Booking, Transaction])],
+  imports: [
+    TypeOrmModule.forFeature([Booking, Transaction]),
+    StaffSlotModule,
+    StaffWorkCalendarModule,
+    TimeSlotModule,
+  ],
   controllers: [BookingController],
   providers: [BookingService],
 })

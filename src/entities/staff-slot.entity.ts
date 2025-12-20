@@ -32,7 +32,7 @@ export class StaffSlot {
   @JoinColumn({ name: 'timeSlotId' })
   timeSlot: TimeSlot;
 
-  @Column({ nullable: true })
+  @Column({ type: 'date' })
   slotDate: Date;
 
   @Column({

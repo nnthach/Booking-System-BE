@@ -7,13 +7,18 @@ import { CreateTimeSlotDto } from './dto/create-time-slot.dto';
 import { UpdateTimeSlotDto } from './dto/update-time-slot.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TimeSlot } from 'src/entities/time-slot.entity';
-import { Not, Repository } from 'typeorm';
+import { Between, Not, Repository } from 'typeorm';
+import { WorkingScheduleService } from '../working-schedule/working-schedule.service';
+import { StaffWorkCalendarService } from '../staff-work-calendar/staff-work-calendar.service';
 
 @Injectable()
 export class TimeSlotService {
   constructor(
     @InjectRepository(TimeSlot)
     private timeSlotRepository: Repository<TimeSlot>,
+
+    private readonly workingScheduleService: WorkingScheduleService,
+    private readonly staffWorkCalendarService: StaffWorkCalendarService,
   ) {}
 
   async create(createTimeSlotDto: CreateTimeSlotDto) {
@@ -31,10 +36,7 @@ export class TimeSlotService {
     date.setHours(hour, minute, 0, 0);
 
     const end = new Date(date.getTime() + 30 * 60 * 1000);
-    console.log('end', end);
-    console.log('end toTimeString', end.toTimeString());
     const endTime = end.toTimeString().slice(0, 5);
-    console.log('endTime', endTime);
 
     const timeSlot = this.timeSlotRepository.create({
       startTime: createTimeSlotDto.startTime,
@@ -43,12 +45,55 @@ export class TimeSlotService {
     return await this.timeSlotRepository.save(timeSlot);
   }
 
-  async findAll() {
-    return await this.timeSlotRepository.find({
+  async findSlotByDateAndStaffId(staffId: number, date: string) {
+    const checkDayOfWeek = new Date(date);
+    const dayOfWeek = checkDayOfWeek.getDay();
+
+    // 1. xem ngày thứ mấy để lấy open vs close time
+    const { startTime: startTimeRequire, endTime: endTimeRequire } =
+      await this.workingScheduleService.getWorkingTimeOfDay(dayOfWeek);
+
+    // 2. nếu client có truyền staff check xem staff có đi làm ko
+    if (staffId) {
+      const isStaffWorkOnDate =
+        await this.staffWorkCalendarService.findByStaffAndDate(staffId, date);
+
+      // nếu ngày đó staff không làm thì return như này
+      if (!isStaffWorkOnDate) {
+        return { message: 'Staff off on this day' };
+      }
+    }
+
+    // 3. kiểm tra xem đã qua thời gian chưa
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const isToday = todayStr === date;
+    const currentTime = today.toTimeString().slice(0, 8);
+
+    // 4. kiểm tra tgian từ client đã == endtime hôm nay chưa
+    if (isToday && currentTime >= endTimeRequire) {
+      return { message: 'Please select tomorrow' };
+    }
+
+    // 5. nếu ngày quá khứ
+    if (todayStr > date) {
+      return { message: 'Please select tomorrow' };
+    }
+
+    // chỉ lấy slot tgian sắp tới chưa hết hạn
+    const result = await this.timeSlotRepository.find({
+      where: {
+        startTime: isToday
+          ? Between(currentTime, endTimeRequire)
+          : Between(startTimeRequire, endTimeRequire),
+        isActive: true,
+      },
       order: {
         startTime: 'ASC',
       },
     });
+
+    return result;
   }
 
   async findOne(id: number) {

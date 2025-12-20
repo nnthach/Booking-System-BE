@@ -6,11 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { StaffWorkCalendarService } from './staff-work-calendar.service';
 import { CreateStaffWorkCalendarDto } from './dto/create-staff-work-calendar.dto';
 import { UpdateStaffWorkCalendarDto } from './dto/update-staff-work-calendar.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Staff register schedule')
 @Controller('staff-work-calendar')
@@ -29,9 +30,19 @@ export class StaffWorkCalendarController {
     return this.staffWorkCalendarService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.staffWorkCalendarService.findOne(+id);
+  @Get('by-staff-and-date')
+  @ApiQuery({ name: 'staffId', required: true, type: Number, example: 1 })
+  @ApiQuery({ name: 'date', required: true, type: String })
+  findByStaffAndDate(
+    @Query('staffId') staffId: number,
+    @Query('date') date: string,
+  ) {
+    return this.staffWorkCalendarService.findByStaffAndDate(staffId, date);
+  }
+
+  @Get(':staffId')
+  findByStaff(@Param('staffId') staffId: number) {
+    return this.staffWorkCalendarService.findByStaff(+staffId);
   }
 
   @Patch(':id')

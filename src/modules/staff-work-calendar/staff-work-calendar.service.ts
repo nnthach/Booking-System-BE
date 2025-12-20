@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateStaffWorkCalendarDto } from './dto/create-staff-work-calendar.dto';
 import { UpdateStaffWorkCalendarDto } from './dto/update-staff-work-calendar.dto';
-import { getNextWeekRange } from 'src/utils/date.utils';
+import { getNextWeekRange, parseDateOnly } from 'src/utils/date.utils';
 import { StaffService } from '../staff/staff.service';
 import { WorkingScheduleService } from '../working-schedule/working-schedule.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -22,6 +22,7 @@ export class StaffWorkCalendarService {
     private staffWorkCalendarRepository: Repository<StaffWorkCalendar>,
     private readonly dataSource: DataSource,
   ) {}
+
   async create(createStaffWorkCalendarDto: CreateStaffWorkCalendarDto) {
     const { staffId, workDates } = createStaffWorkCalendarDto;
 
@@ -92,8 +93,92 @@ export class StaffWorkCalendarService {
     return `This action returns all staffWorkCalendar`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} staffWorkCalendar`;
+  // phục vụ skip staff booking
+  // tìm staff làm ngày đó đồng thời bỏ qua mấy thằng có trong TimeSlot luôn
+  async findStaffWorkOnDate(
+    date: string,
+    timeSlotId: number,
+  ): Promise<number | null> {
+    const rows: { staffId: number }[] = await this.dataSource.query(
+      `
+    SELECT swc.staffId
+    FROM \`staff-work-calendar\` swc
+    WHERE DATE(swc.workDate) = ?
+      AND swc.status = 'REGISTER'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM \`staff-slots\` ss
+        WHERE ss.staffId = swc.staffId
+          AND ss.timeSlotId = ?
+          AND DATE(ss.slotDate) = ?
+      )
+    ORDER BY swc.staffId ASC
+    LIMIT 1
+    `,
+      [date, timeSlotId, date],
+    );
+
+    console.log('rows', rows);
+
+    return rows.length ? rows[0].staffId : null;
+  }
+
+  async findByStaff(staffId: number) {
+    const staff = await this.staffService.findOne(staffId);
+    if (!staff) {
+      throw new NotFoundException('Not found staff');
+    }
+    const staffWorkSchedule = await this.staffWorkCalendarRepository.find({
+      where: { staffId },
+      relations: ['workSchedule'],
+      select: {
+        workSchedule: {
+          dayOfWeek: true,
+          status: true,
+        },
+      },
+    });
+    if (!staffWorkSchedule) {
+      throw new NotFoundException('Not found staff schedule');
+    }
+    return staffWorkSchedule;
+  }
+
+  async findByStaffAndDate(staffId: number, date: string) {
+    // 1. check staff
+    const staff = await this.staffService.findOne(staffId);
+    if (!staff) {
+      throw new NotFoundException('Not found staff');
+    }
+    // 2. convert string to date
+    const workDate = parseDateOnly(date);
+    if (!workDate || isNaN(workDate.getTime())) {
+      throw new BadRequestException(
+        'Invalid date format. Please use YYYY-MM-DD.',
+      );
+    }
+    // 3. staff schedule
+    const staffWorkSchedule = await this.staffWorkCalendarRepository.findOne({
+      where: { staffId, workDate },
+      relations: ['workSchedule'],
+      select: {
+        id: true,
+        workDate: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        workSchedule: {
+          dayOfWeek: true,
+          status: true,
+        },
+      },
+    });
+
+    if (!staffWorkSchedule) {
+      throw new NotFoundException(`Staff schedule not found for date ${date}`);
+    }
+
+    return staffWorkSchedule;
   }
 
   update(id: number, updateStaffWorkCalendarDto: UpdateStaffWorkCalendarDto) {

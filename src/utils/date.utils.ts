@@ -17,3 +17,8 @@ export function getNextWeekRange() {
 
   return { nextMonday, nextSunday };
 }
+
+export function parseDateOnly(date: string): Date {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}

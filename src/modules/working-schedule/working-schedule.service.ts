@@ -46,6 +46,19 @@ export class WorkingScheduleService {
     });
   }
 
+  async getWorkingTimeOfDay(dayOfWeek: number) {
+    const workSchedule = await this.findOne(dayOfWeek);
+
+    if (!workSchedule) {
+      throw new NotFoundException('Not found working time');
+    }
+
+    return {
+      startTime: workSchedule.startTime,
+      endTime: workSchedule.endTime,
+    };
+  }
+
   async update(
     dayOfWeek: number,
     updateWorkingScheduleDto: UpdateWorkingScheduleDto,

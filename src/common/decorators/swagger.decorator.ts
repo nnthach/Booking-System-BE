@@ -119,20 +119,20 @@ export const ArrayRequired = (
       isArray: true,
       items: { type: type.name },
     }),
-    IsArray({ message: `${name} phải là mảng` }),
-    ArrayNotEmpty({ message: `${name} không được để trống` }),
+    IsArray({ message: `${name} must be array` }),
+    ArrayNotEmpty({ message: `${name} is required` }),
     Type(() => type),
     ...(minSize !== undefined
       ? [
           ArrayMinSize(minSize, {
-            message: `${name} phải có ít nhất ${minSize} phần tử`,
+            message: `${name} must be at least ${minSize} item`,
           }),
         ]
       : []),
     ...(maxSize !== undefined
       ? [
           ArrayMaxSize(maxSize, {
-            message: `${name} chỉ được có tối đa ${maxSize} phần tử`,
+            message: `${name} maximum ${maxSize} item`,
           }),
         ]
       : []),
@@ -151,19 +151,19 @@ export const ArrayNotRequired = (
       isArray: true,
       items: { type: type?.name },
     }),
-    IsArray({ message: `${name} phải là mảng` }),
+    IsArray({ message: `${name} must be array` }),
     Type(() => type),
     ...(minSize !== undefined
       ? [
           ArrayMinSize(minSize, {
-            message: `${name} phải có ít nhất ${minSize} phần tử`,
+            message: `${name} at least ${minSize} item`,
           }),
         ]
       : []),
     ...(maxSize !== undefined
       ? [
           ArrayMaxSize(maxSize, {
-            message: `${name} chỉ được có tối đa ${maxSize} phần tử`,
+            message: `${name} maximum ${maxSize} item`,
           }),
         ]
       : []),
