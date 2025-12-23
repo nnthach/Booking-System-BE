@@ -16,13 +16,14 @@ import { StaffSlot } from 'src/entities/staff-slot.entity';
 import { StaffSlotStatus } from 'src/enums/staffSlot.enum';
 import { TimeSlotService } from '../time-slot/time-slot.service';
 import { Service } from 'src/entities/service.entity';
+import { BookingServiceService } from '../booking-service/booking-service.service';
 
 @Injectable()
 export class BookingService {
   constructor(
     @InjectRepository(Booking)
     private bookingRepository: Repository<Booking>,
-    private readonly staffSlotService: StaffSlotService,
+    private readonly bookingServiceService: BookingServiceService,
     private readonly timeSlotService: TimeSlotService,
     private readonly staffWorkCalendar: StaffWorkCalendarService,
     private readonly dataSource: DataSource,
@@ -118,7 +119,17 @@ export class BookingService {
         note,
       });
 
-      return await manager.save(booking);
+      // 3. save booking
+      const saveBooking = await manager.save(booking);
+
+      // 4. create booking service
+      await this.bookingServiceService.create(
+        services,
+        saveBooking.id,
+        manager,
+      );
+
+      return saveBooking;
     });
   }
 
@@ -156,8 +167,53 @@ export class BookingService {
     return `This action returns all booking`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} booking`;
+  async findOne(id: number) {
+    return await this.bookingRepository.findOne({
+      where: { id },
+      relations: {
+        customer: true,
+        staffSlot: {
+          staff: {
+            user: true,
+          },
+          timeSlot: true,
+        },
+        bookingServices: {
+          service: true,
+        },
+      },
+      select: {        
+        customer: {
+          email: true,
+          fullName: true,
+        },
+        staffSlot: {
+          id: true,
+          staff: {
+            id: true,
+            avatar: true,
+            user: {
+              fullName: true,
+            },
+          },
+          timeSlot: {
+            id: true,
+            startTime: true,
+            endTime: true,
+          },
+          slotDate: true,
+        },
+        bookingServices: {
+          id: true,
+          service: {
+            id: true,
+            name: true,
+            price: true,
+            image: true,
+          },
+        },
+      },
+    });
   }
 
   update(id: number, updateBookingDto: UpdateBookingDto) {
