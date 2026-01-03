@@ -9,11 +9,15 @@ import {
 } from 'typeorm';
 import { Booking } from './booking.entity';
 import { TransactionEnum } from 'src/enums/transaction.enum';
+import { PaymentMethodEnum } from 'src/enums/payment-method.enum';
 
 @Entity('transactions')
 export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ nullable: true })
+  bookingId: number;
 
   @OneToOne(() => Booking, (booking) => booking.transaction)
   @JoinColumn({ name: 'bookingId' })
@@ -22,10 +26,13 @@ export class Transaction {
   @Column()
   totalPrice: number;
 
-  @Column()
-  paymentMethod: string;
+  @Column({
+    type: 'enum',
+    enum: PaymentMethodEnum,
+  })
+  paymentMethod: PaymentMethodEnum;
 
-  @Column()
+  @Column({ nullable: true })
   paymentUrl: string;
 
   @Column({
@@ -34,6 +41,9 @@ export class Transaction {
     default: TransactionEnum.PENDING,
   })
   status: TransactionEnum;
+
+  @Column({ nullable: true })
+  orderCode: number;
 
   @CreateDateColumn()
   createdAt: Date;

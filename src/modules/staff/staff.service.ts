@@ -85,6 +85,26 @@ export class StaffService {
     return staff;
   }
 
+  async findOneStaffByUserId(userId: number) {
+    const staff = await this.staffRepository.findOne({
+      where: { userId },
+      relations: ['user'],
+      select: {
+        user: {
+          fullName: true,
+          email: true,
+          roleId: true,
+          phoneNumber: true,
+          status: true,
+        },
+      },
+    });
+    if (!staff) {
+      throw new NotFoundException('Not found staff');
+    }
+    return staff;
+  }
+
   async getStaffSchedule(staffId: number) {
     const staff = await this.staffRepository.findOne({
       where: { id: staffId },

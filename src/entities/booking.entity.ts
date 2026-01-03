@@ -14,6 +14,7 @@ import { BookingStatus } from 'src/enums/booking.enum';
 import { BookingService } from './booking-service.entity';
 import { Transaction } from './transaction.entity';
 import { StaffSlot } from './staff-slot.entity';
+import { BookingPaymentTypeEnum } from 'src/enums/booking-payment-type.enum';
 
 @Entity('bookings')
 export class Booking {
@@ -37,7 +38,7 @@ export class Booking {
   @Column({
     type: 'enum',
     enum: BookingStatus,
-    default: BookingStatus.PENDING,
+    default: BookingStatus.CONFIRM_BOOKING,
   })
   status: BookingStatus;
 
@@ -46,6 +47,12 @@ export class Booking {
 
   @Column({ type: 'timestamp', nullable: true })
   checkInTime: Date;
+
+  @Column({
+    type: 'enum',
+    enum: BookingPaymentTypeEnum,
+  })
+  paymentType: BookingPaymentTypeEnum;
 
   @Column({ type: 'date', nullable: true })
   bookingDate: Date;

@@ -5,13 +5,19 @@ import {
 } from '@nestjs/common';
 import { CreateStaffWorkCalendarDto } from './dto/create-staff-work-calendar.dto';
 import { UpdateStaffWorkCalendarDto } from './dto/update-staff-work-calendar.dto';
-import { getNextWeekRange, parseDateOnly } from 'src/utils/date.utils';
+import {
+  endOfDay,
+  getNextWeekRange,
+  parseDateOnly,
+  startOfDay,
+} from 'src/utils/date.utils';
 import { StaffService } from '../staff/staff.service';
 import { WorkingScheduleService } from '../working-schedule/working-schedule.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
-import { DataSource, Repository } from 'typeorm';
+import { Between, DataSource, Repository } from 'typeorm';
 import { StaffWorkScheduleStatus } from 'src/enums/staffWorkSchedule.enum';
+import { JwtUser } from '../auth/dto/login-auth.dto';
 
 @Injectable()
 export class StaffWorkCalendarService {
@@ -23,13 +29,18 @@ export class StaffWorkCalendarService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createStaffWorkCalendarDto: CreateStaffWorkCalendarDto) {
-    const { staffId, workDates } = createStaffWorkCalendarDto;
+  async create(
+    createStaffWorkCalendarDto: CreateStaffWorkCalendarDto,
+    user: JwtUser,
+  ) {
+    const { workDates } = createStaffWorkCalendarDto;
 
     const { nextMonday, nextSunday } = getNextWeekRange();
+    const userId = user.id;
 
     // 1. Kiểm tra staff có tồn tại không
-    const staff = await this.staffService.findOne(staffId);
+    const staff = await this.staffService.findOneStaffByUserId(userId);
+
     if (!staff) {
       throw new NotFoundException('Staff not found');
     }
@@ -59,7 +70,7 @@ export class StaffWorkCalendarService {
         // 3. Kiểm tra staff có đăng ký trùng ngày không
         const isExisting = await manager.findOne(StaffWorkCalendar, {
           where: {
-            staffId,
+            staffId: staff.id,
             workDate: registerDate,
           },
         });
@@ -71,7 +82,7 @@ export class StaffWorkCalendarService {
 
         // 4. Tạo và LƯU vào DB
         const newEntry = manager.create(StaffWorkCalendar, {
-          staffId: staffId,
+          staffId: staff.id,
           workScheduleID: workSchedule.id,
           workDate: registerDate,
           startTime: workSchedule.startTime,
@@ -91,6 +102,38 @@ export class StaffWorkCalendarService {
 
   findAll() {
     return `This action returns all staffWorkCalendar`;
+  }
+
+  async findStaffScheduleRegistered(
+    user: JwtUser,
+    workDateFrom: string,
+    workDateTo: string,
+  ) {
+    const userId = user.id;
+
+    // 1. Kiểm tra staff có tồn tại không
+    const staff = await this.staffService.findOneStaffByUserId(userId);
+
+    if (!staff) {
+      throw new NotFoundException('Staff not found');
+    }
+
+    const fromDate = startOfDay(parseDateOnly(workDateFrom));
+    const toDate = endOfDay(parseDateOnly(workDateTo));
+
+    console.log('FROM', fromDate);
+    console.log('TO', toDate);
+
+    // 2. get by work date input
+    const schedule = await this.staffWorkCalendarRepository.find({
+      where: {
+        staffId: staff.id,
+        workDate: Between(fromDate, toDate),
+      },
+    });
+
+    console.log('schedule', schedule);
+    return schedule;
   }
 
   // phục vụ skip staff booking

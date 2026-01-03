@@ -7,7 +7,7 @@ import { CreateTimeSlotDto } from './dto/create-time-slot.dto';
 import { UpdateTimeSlotDto } from './dto/update-time-slot.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TimeSlot } from 'src/entities/time-slot.entity';
-import { Between, Not, Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { WorkingScheduleService } from '../working-schedule/working-schedule.service';
 import { StaffWorkCalendarService } from '../staff-work-calendar/staff-work-calendar.service';
 
@@ -80,20 +80,38 @@ export class TimeSlotService {
       return { message: 'Please select tomorrow' };
     }
 
-    // chỉ lấy slot tgian sắp tới chưa hết hạn
-    const result = await this.timeSlotRepository.find({
-      where: {
-        startTime: isToday
-          ? Between(currentTime, endTimeRequire)
-          : Between(startTimeRequire, endTimeRequire),
-        isActive: true,
-      },
-      order: {
-        startTime: 'ASC',
-      },
-    });
+    // 6.1 chỉ lấy slot tgian sắp tới chưa hết hạn
+    const query = this.timeSlotRepository
+      .createQueryBuilder('ts')
+      .where('ts.isActive = true')
+      .andWhere(
+        isToday
+          ? 'ts.startTime BETWEEN :currentTime AND :endTimeRequire'
+          : 'ts.startTime BETWEEN :startTimeRequire AND :endTimeRequire',
+      )
+      .setParameters({
+        startTimeRequire,
+        endTimeRequire,
+        currentTime,
+      });
 
-    return result;
+    // 6.2 loai tru staff da book trong staff slot
+    if (staffId) {
+      query.andWhere(
+        `
+      NOT EXISTS (
+        SELECT 1
+        FROM \`staff-slots\` ss
+        WHERE ss.timeSlotId = ts.id
+          AND ss.staffId = :staffId
+          AND DATE(ss.slotDate) = :date
+      )
+      `,
+        { staffId, date },
+      );
+    }
+
+    return query.orderBy('ts.startTime', 'ASC').getMany();
   }
 
   async findOne(id: number) {

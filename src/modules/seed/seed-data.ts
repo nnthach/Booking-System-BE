@@ -1,5 +1,7 @@
+import { start } from 'repl';
 import { UserRole } from 'src/enums/role.enum';
 import { UserStatus } from 'src/enums/user.enum';
+import { WorkScheduleStatus } from 'src/enums/workSchedule';
 
 export const seedData = {
   roles: [
@@ -96,6 +98,173 @@ export const seedData = {
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
+    },
+  ],
+
+  services: [
+    {
+      id: 1,
+      name: 'Haircut',
+      description: 'Professional haircut service',
+      status: true,
+      duration: 20,
+      price: 100000,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 2,
+      name: 'Hair DIY',
+      description: 'Professional hair DIY service',
+      status: true,
+      duration: 30,
+      price: 150000,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ],
+
+  timeSlots: [
+    {
+      id: 1,
+      startTime: '9:00:00',
+      endTime: '10:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 2,
+      startTime: '10:00:00',
+      endTime: '11:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 3,
+      startTime: '11:00:00',
+      endTime: '12:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 4,
+      startTime: '12:00:00',
+      endTime: '13:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 5,
+      startTime: '13:00:00',
+      endTime: '14:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 6,
+      startTime: '14:00:00',
+      endTime: '15:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 7,
+      startTime: '15:00:00',
+      endTime: '16:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 8,
+      startTime: '17:00:00',
+      endTime: '18:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 9,
+      startTime: '18:00:00',
+      endTime: '19:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 10,
+      startTime: '19:00:00',
+      endTime: '20:00:00',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ],
+
+  workSchedule: [
+    {
+      id: 1,
+      dayOfWeek: 1,
+      startTime: '10:00:00',
+      endTime: '19:00:00',
+      createdAt: new Date(),
+      status: WorkScheduleStatus.AVAILABLE,
+    },
+
+    {
+      id: 2,
+      dayOfWeek: 2,
+      startTime: '10:00:00',
+      endTime: '19:00:00',
+      createdAt: new Date(),
+      status: WorkScheduleStatus.AVAILABLE,
+    },
+
+    {
+      id: 3,
+      dayOfWeek: 3,
+      startTime: '10:00:00',
+      endTime: '19:00:00',
+      createdAt: new Date(),
+      status: WorkScheduleStatus.AVAILABLE,
+    },
+    {
+      id: 4,
+      dayOfWeek: 4,
+      startTime: '10:00:00',
+      endTime: '19:00:00',
+      createdAt: new Date(),
+      status: WorkScheduleStatus.AVAILABLE,
+    },
+    {
+      id: 5,
+      dayOfWeek: 5,
+      startTime: '10:00:00',
+      endTime: '19:00:00',
+      createdAt: new Date(),
+      status: WorkScheduleStatus.AVAILABLE,
+    },
+    {
+      id: 6,
+      dayOfWeek: 6,
+      startTime: '9:00:00',
+      endTime: '17:00:00',
+      createdAt: new Date(),
+      status: WorkScheduleStatus.AVAILABLE,
+    },
+    {
+      id: 0,
+      dayOfWeek: 0,
+      startTime: '9:00:00',
+      endTime: '17:00:00',
+      createdAt: new Date(),
+      status: WorkScheduleStatus.AVAILABLE,
     },
   ],
 };

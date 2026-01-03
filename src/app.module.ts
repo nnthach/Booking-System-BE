@@ -9,12 +9,12 @@ import { MailModule } from './modules/mail/mail.module';
 import { BookingServiceModule } from './modules/booking-service/booking-service.module';
 import { BookingModule } from './modules/booking/booking.module';
 import { ServiceModule } from './modules/service/service.module';
-import { TransactionModule } from './modules/transaction/transaction.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { StaffSlotModule } from './modules/staff-slot/staff-slot.module';
 import { TimeSlotModule } from './modules/time-slot/time-slot.module';
 import { WorkingScheduleModule } from './modules/working-schedule/working-schedule.module';
 import { StaffWorkCalendarModule } from './modules/staff-work-calendar/staff-work-calendar.module';
+import { TransactionModule } from './modules/transaction/transaction.module';
 
 @Module({
   imports: [

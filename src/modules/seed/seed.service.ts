@@ -5,6 +5,9 @@ import { DataSource, EntityManager } from 'typeorm';
 import { seedData } from './seed-data';
 import * as bcrypt from 'bcrypt';
 import { Staff } from 'src/entities/staff.entity';
+import { Service } from 'src/entities/service.entity';
+import { TimeSlot } from 'src/entities/time-slot.entity';
+import { WorkingSchedule } from 'src/entities/work-schedule.entity';
 
 @Injectable()
 export class SeedService {
@@ -26,6 +29,18 @@ export class SeedService {
     await manager.getRepository(Staff).save(seedData.staffs);
   }
 
+  private async seedServices(manager: EntityManager) {
+    await manager.getRepository(Service).save(seedData.services);
+  }
+
+  private async seedTimeSlots(manager: EntityManager) {
+    await manager.getRepository(TimeSlot).save(seedData.timeSlots);
+  }
+
+  private async seedWorkSchedule(manager: EntityManager) {
+    await manager.getRepository(WorkingSchedule).save(seedData.workSchedule);
+  }
+
   async initSeedData() {
     try {
       await this.dataSource.transaction(async (manager) => {
@@ -33,9 +48,12 @@ export class SeedService {
         await manager.query('SET FOREIGN_KEY_CHECKS = 0');
 
         // Xoa bỏ dữ liệu cũ
-        await manager.query('TRUNCATE TABLE users');
-        await manager.query('TRUNCATE TABLE roles');
-        await manager.query('TRUNCATE TABLE staffs');
+        await manager.query('TRUNCATE TABLE `users`');
+        await manager.query('TRUNCATE TABLE `roles`');
+        await manager.query('TRUNCATE TABLE `staffs`');
+        await manager.query('TRUNCATE TABLE `services`');
+        await manager.query('TRUNCATE TABLE `time-slots`');
+        await manager.query('TRUNCATE TABLE `working-schedule`');
 
         // Bật lại kiểm tra khóa ngoại
         await manager.query('SET FOREIGN_KEY_CHECKS = 1');
@@ -44,6 +62,9 @@ export class SeedService {
         await this.seedRoles(manager);
         await this.seedUsers(manager);
         await this.seedStaffs(manager);
+        await this.seedServices(manager);
+        await this.seedTimeSlots(manager);
+        await this.seedWorkSchedule(manager);
       });
 
       return { message: 'Seeding completed successfully' };

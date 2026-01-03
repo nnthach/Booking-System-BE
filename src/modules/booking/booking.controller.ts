@@ -14,7 +14,7 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { JwtUser } from '../auth/dto/login-auth.dto';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 @Controller('booking')
 export class BookingController {
@@ -22,6 +22,9 @@ export class BookingController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: 'Payment method ONLINE | OFFLINE',
+  })
   @Post()
   create(
     @Request() req: Request & { user: JwtUser },
