@@ -11,8 +11,9 @@ import {
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { LocalAuthGuard } from './passport/local-auth.guard';
-import { JwtUser, LoginAuthDto } from './dto/login-auth.dto';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LoginAuthDto } from './dto/login-auth.dto';
+import { User } from 'src/entities/user.entity';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -38,11 +39,11 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   login(
-    @Request() req: Request & { user: JwtUser },
+    @Request() req: Request & { user: User },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() loginDto: LoginAuthDto,
   ) {
-    console.log('req', req);
+    console.log('req', req.user);
     return this.authService.login(req.user);
   }
 }

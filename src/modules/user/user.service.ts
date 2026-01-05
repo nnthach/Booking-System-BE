@@ -15,6 +15,7 @@ import { UserStatus } from 'src/enums/user.enum';
 import { GenerateHelpers } from 'src/utils/helpers';
 import { CreateStaffDto } from '../staff/dto/create-staff.dto';
 import { Staff } from 'src/entities/staff.entity';
+import { JwtUser } from '../auth/dto/login-auth.dto';
 
 @Injectable()
 export class UserService {
@@ -26,9 +27,34 @@ export class UserService {
     private staffRepository: Repository<Staff>,
   ) {}
 
+  async getUserInfo(user: JwtUser) {
+    const result = await this.userRepository.findOne({
+      where: { id: user.id },
+      relations: ['role'],
+    });
+
+    if (!result) {
+      throw new NotFoundException('Not found user');
+    }
+    return {
+      id: result.id,
+      email: result.email,
+      fullName: result.fullName,
+      status: result.status,
+      phoneNumber: result.phoneNumber,
+      role: {
+        id: result.role.id,
+        name: result.role.name,
+      },
+    };
+  }
+
   async findUserByEmail(email: string): Promise<User | undefined> {
     try {
-      const user = await this.userRepository.findOne({ where: { email } });
+      const user = await this.userRepository.findOne({
+        where: { email },
+        relations: ['role'],
+      });
 
       return user ?? undefined;
     } catch (error) {

@@ -14,7 +14,6 @@ import { Repository } from 'typeorm';
 import { UserStatus } from 'src/enums/user.enum';
 import { JwtService } from '@nestjs/jwt';
 import { AuthenUserHelpers } from 'src/utils/helpers';
-import { JwtUser } from './dto/login-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -95,8 +94,8 @@ export class AuthService {
     }
   }
 
-  login(user: JwtUser) {
-    const payload = { sub: user.id, email: user.email };
+  login(user: User) {
+    const payload = { sub: user.id, email: user.email, role: user.role?.name || null };
     return {
       message: 'Login successfully',
       data: {

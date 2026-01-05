@@ -19,8 +19,11 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtUser } from '../auth/dto/login-auth.dto';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/enums/role.enum';
 
 @ApiTags('Staff register schedule')
 @Controller('staff-work-calendar')
@@ -29,8 +32,13 @@ export class StaffWorkCalendarController {
     private readonly staffWorkCalendarService: StaffWorkCalendarService,
   ) {}
 
+  @ApiOperation({
+    summary: 'Staff register schedule',
+    description: 'Staff only',
+  })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.STAFF)
   @Post()
   create(
     @Request() req: Request & { user: JwtUser },
