@@ -15,6 +15,7 @@ import { BookingService } from './booking-service.entity';
 import { Transaction } from './transaction.entity';
 import { StaffSlot } from './staff-slot.entity';
 import { BookingPaymentTypeEnum } from 'src/enums/booking-payment-type.enum';
+import { Store } from './store.entity';
 
 @Entity('bookings')
 export class Booking {
@@ -71,4 +72,11 @@ export class Booking {
 
   @OneToOne(() => Transaction, (transaction) => transaction.booking)
   transaction: Transaction;
+
+  @Column({ nullable: true })
+  storeId: number;
+
+  @ManyToOne(() => Store, (store) => store.bookings, { nullable: true })
+  @JoinColumn({ name: 'storeId' })
+  store: Store;
 }

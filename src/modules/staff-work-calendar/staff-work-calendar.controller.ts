@@ -57,12 +57,14 @@ export class StaffWorkCalendarController {
 
   @Get('by-staff-and-date')
   @ApiQuery({ name: 'staffId', required: true, type: Number, example: 1 })
+  @ApiQuery({ name: 'storeId', required: true, type: Number, example: 1 })
   @ApiQuery({ name: 'date', required: true, type: String })
   findByStaffAndDate(
     @Query('staffId') staffId: number,
+    @Query('storeId') storeId: number,
     @Query('date') date: string,
   ) {
-    return this.staffWorkCalendarService.findByStaffAndDate(staffId, date);
+    return this.staffWorkCalendarService.findByStaffAndDate(staffId, date, storeId);
   }
 
   @ApiOperation({

@@ -96,17 +96,19 @@ export class UserService {
     }
   }
 
-  async createStaff(
-    createStaffDto: CreateStaffDto,
-  ): Promise<{ staff: User; password: string }> {
+  async createStaff(payload: {
+    createStaffDto: CreateStaffDto;
+    password: string;
+  }): Promise<{ staff: User; password: string }> {
     try {
+      const { createStaffDto, password } = payload;
       const isExistingUser = await this.findUserByEmail(createStaffDto.email);
 
       if (isExistingUser) {
         throw new BadRequestException('Email already in use');
       }
 
-      const hashedPassword = await bcrypt.hash(createStaffDto.password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = this.userRepository.create({
         ...createStaffDto,
@@ -116,7 +118,7 @@ export class UserService {
       });
 
       const saveStaff = await this.userRepository.save(user);
-      return { staff: saveStaff, password: createStaffDto.password };
+      return { staff: saveStaff, password: password };
     } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;

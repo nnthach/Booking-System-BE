@@ -28,14 +28,19 @@ export class StaffService {
   ) {}
 
   async create(createStaffDto: CreateStaffDto) {
-    const { staff, password } =
-      await this.userService.createStaff(createStaffDto);
+    const randomPassword = '123456';
+    // const randomPassword = Date.now().toString();
+    const payload = {
+      createStaffDto,
+      password: randomPassword,
+    };
+    const { staff, password } = await this.userService.createStaff(payload);
 
     if (!staff) {
       throw new InternalServerErrorException('Create Staff Failed');
     }
 
-    // Gửi email chào mừng kèm email và password để login
+    // Gửi email email và password
     this.mailService
       .sendEmailWelcomeStaff(staff.fullName, staff.email, password)
       .catch((err) => {
@@ -45,6 +50,7 @@ export class StaffService {
     const createStaff = this.staffRepository.create({
       userId: staff.id,
       isActive: true,
+      storeId: createStaffDto.storeId,
     });
 
     return await this.staffRepository.save(createStaff);
@@ -63,6 +69,10 @@ export class StaffService {
         },
       },
     });
+  }
+
+  async getStaffByStoreId(storeId: number) {
+    return await this.staffRepository.find({ where: { storeId } });
   }
 
   async findOne(id: number) {

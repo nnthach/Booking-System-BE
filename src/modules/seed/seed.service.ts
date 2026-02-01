@@ -8,6 +8,7 @@ import { Staff } from 'src/entities/staff.entity';
 import { Service } from 'src/entities/service.entity';
 import { TimeSlot } from 'src/entities/time-slot.entity';
 import { WorkingSchedule } from 'src/entities/work-schedule.entity';
+import { Store } from 'src/entities/store.entity';
 
 @Injectable()
 export class SeedService {
@@ -41,6 +42,10 @@ export class SeedService {
     await manager.getRepository(WorkingSchedule).save(seedData.workSchedule);
   }
 
+  private async seedStore(manager: EntityManager) {
+    await manager.getRepository(Store).save(seedData.stores);
+  }
+
   async initSeedData() {
     try {
       await this.dataSource.transaction(async (manager) => {
@@ -49,6 +54,7 @@ export class SeedService {
 
         // Xoa bỏ dữ liệu cũ
         await manager.query('TRUNCATE TABLE `users`');
+        await manager.query('TRUNCATE TABLE `stores`');
         await manager.query('TRUNCATE TABLE `roles`');
         await manager.query('TRUNCATE TABLE `staffs`');
         await manager.query('TRUNCATE TABLE `services`');
@@ -60,6 +66,7 @@ export class SeedService {
 
         // Seed dữ liệu theo đúng thứ tự (sửa lại)
         await this.seedRoles(manager);
+        await this.seedStore(manager);
         await this.seedUsers(manager);
         await this.seedStaffs(manager);
         await this.seedServices(manager);

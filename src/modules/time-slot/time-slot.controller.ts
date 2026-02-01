@@ -40,11 +40,17 @@ export class TimeSlotController {
   @Get()
   @ApiQuery({ name: 'staffId', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'date', required: true, type: String })
+  @ApiQuery({ name: 'storeId', required: true, type: String })
   findSlotByDateAndStaffId(
     @Query('staffId') staffId: number,
     @Query('date') date: string,
+    @Query('storeId') storeId: number,
   ) {
-    return this.timeSlotService.findSlotByDateAndStaffId(staffId, date);
+    return this.timeSlotService.findSlotByDateAndStaffId(
+      staffId,
+      date,
+      storeId,
+    );
   }
 
   @Get(':id')

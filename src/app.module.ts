@@ -15,6 +15,7 @@ import { TimeSlotModule } from './modules/time-slot/time-slot.module';
 import { WorkingScheduleModule } from './modules/working-schedule/working-schedule.module';
 import { StaffWorkCalendarModule } from './modules/staff-work-calendar/staff-work-calendar.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
+import { StoreModule } from './modules/store/store.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TransactionModule } from './modules/transaction/transaction.module';
     TimeSlotModule,
     WorkingScheduleModule,
     StaffWorkCalendarModule,
+    StoreModule,
   ],
   controllers: [],
   providers: [],

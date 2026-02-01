@@ -4,7 +4,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from 'src/entities/booking.entity';
 import { DataSource, EntityManager, Equal, In, Repository } from 'typeorm';
@@ -18,15 +17,20 @@ import { Service } from 'src/entities/service.entity';
 import { BookingServiceService } from '../booking-service/booking-service.service';
 import { TimeSlot } from 'src/entities/time-slot.entity';
 import { BookingPaymentTypeEnum } from 'src/enums/booking-payment-type.enum';
+import { Store } from 'src/entities/store.entity';
+import { StaffService } from '../staff/staff.service';
 
 @Injectable()
 export class BookingService {
   constructor(
     @InjectRepository(Booking)
     private bookingRepository: Repository<Booking>,
+    @InjectRepository(Store)
+    private storeRepository: Repository<Store>,
     private readonly bookingServiceService: BookingServiceService,
     private readonly timeSlotService: TimeSlotService,
     private readonly staffWorkCalendar: StaffWorkCalendarService,
+    private readonly staffService: StaffService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -64,21 +68,55 @@ export class BookingService {
 
   private async resolveStaffId(
     staffId: number,
+    storeId: number,
     skipStaff: boolean,
     date: string,
     timeSlotId: number,
   ) {
+    await this.staffService.findOne(staffId);
+
+    // check staff belong store
+    const isStaffBelongStore = await this.storeRepository.findOne({
+      where: { id: storeId },
+      relations: { staffs: true },
+      select: { staffs: { id: true } },
+    });
+
+    if (!isStaffBelongStore) {
+      throw new BadRequestException('Staff not belong to store');
+    }
+
     if (skipStaff && staffId === 0) {
       const staffWorkOnDate = await this.staffWorkCalendar.findStaffWorkOnDate(
         date,
         timeSlotId,
+        storeId,
       );
 
       if (!staffWorkOnDate) {
         throw new BadRequestException('No staff working on this date');
       }
+      console.log('staffWorkOnDate', staffWorkOnDate);
 
       return staffWorkOnDate;
+    } else if (staffId && skipStaff) {
+      throw new BadRequestException('Skip staff or select staff only');
+    }
+
+    // kiem tra staffId co slot trong ko
+    const isStaffSlotAvailable =
+      await this.timeSlotService.findSlotByDateAndStaffId(
+        staffId,
+        date,
+        storeId,
+      );
+
+    const isValidSlot = isStaffSlotAvailable.some(
+      (slot) => slot.id === timeSlotId,
+    );
+
+    if (!isValidSlot) {
+      throw new BadRequestException('Staff is busy');
     }
 
     return staffId;
@@ -86,8 +124,15 @@ export class BookingService {
 
   async create(createBookingDto: CreateBookingDto, user: JwtUser) {
     return this.dataSource.transaction(async (manager) => {
-      const { serviceIds, staffId, timeSlotId, date, skipStaff, note } =
-        createBookingDto;
+      const {
+        serviceIds,
+        staffId,
+        timeSlotId,
+        date,
+        skipStaff,
+        note,
+        storeId,
+      } = createBookingDto;
 
       if (!user) {
         throw new UnauthorizedException('Not found user');
@@ -110,6 +155,7 @@ export class BookingService {
       // 1. main flow check có staff id hay skip staff
       const finalStaffId = await this.resolveStaffId(
         staffId,
+        storeId,
         skipStaff,
         date,
         timeSlotId,
@@ -131,6 +177,7 @@ export class BookingService {
         totalPrice,
         note,
         paymentType: BookingPaymentTypeEnum.PENDING,
+        storeId,
       });
 
       // 4. save booking
@@ -144,7 +191,6 @@ export class BookingService {
       );
 
       const bookingCreated = await this.findOne(saveBooking.id, manager);
-      console.log('bookingCreated', bookingCreated);
 
       return bookingCreated;
     });
@@ -172,12 +218,13 @@ export class BookingService {
 
     const slot = manager.create(StaffSlot, {
       staffId,
-      slotDate: date,
+      slotDate: slotDate,
       timeSlotId,
       status: StaffSlotStatus.BOOKED,
     });
 
-    return manager.save(slot);
+    const savedSlot = await manager.save(slot);
+    return savedSlot;
   }
 
   findAll() {
@@ -236,13 +283,5 @@ export class BookingService {
         },
       },
     });
-  }
-
-  update(id: number, updateBookingDto: UpdateBookingDto) {
-    return `This action updates a #${id} booking`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} booking`;
   }
 }

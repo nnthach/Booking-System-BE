@@ -9,6 +9,7 @@ import { StaffSlot } from 'src/entities/staff-slot.entity';
 import { UserModule } from '../user/user.module';
 import { MailModule } from '../mail/mail.module';
 import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
+import { Store } from 'src/entities/store.entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
       User,
       WorkingSchedule,
       StaffWorkCalendar,
+      Store,
     ]),
     UserModule,
     MailModule,

@@ -267,4 +267,12 @@ export const seedData = {
       status: WorkScheduleStatus.AVAILABLE,
     },
   ],
+  
+  stores:[
+    {
+      id: 1,
+      address: '123 Main St, Cityville',
+      image: 'https://example.com/store1.jpg',
+    }
+  ]
 };

@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -11,6 +12,7 @@ import {
 import { User } from './user.entity';
 import { StaffSlot } from './staff-slot.entity';
 import { StaffWorkCalendar } from './staff-work-calendar.entity';
+import { Store } from './store.entity';
 
 @Entity('staffs')
 export class Staff {
@@ -53,4 +55,11 @@ export class Staff {
 
   @OneToMany(() => StaffSlot, (staffSlot) => staffSlot.staff)
   staffSlot: StaffSlot[];
+
+  @Column({ nullable: true })
+  storeId: number;
+
+  @ManyToOne(() => Store, (store) => store.staffs, { nullable: true })
+  @JoinColumn({ name: 'storeId' })
+  store: Store;
 }

@@ -19,6 +19,9 @@ export class CreateBookingDto {
   @NumberNotRequired('staffId')
   staffId: number;
 
+  @NumberRequired('storeId')
+  storeId: number;
+
   @ApiProperty({
     description: 'YYYY-MM-DD format',
     example: '2025-12-15',

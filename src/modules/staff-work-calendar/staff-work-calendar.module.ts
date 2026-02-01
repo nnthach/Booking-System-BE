@@ -7,11 +7,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { StaffModule } from '../staff/staff.module';
 import { WorkingScheduleModule } from '../working-schedule/working-schedule.module';
 import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
+import { StoreModule } from '../store/store.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Staff, WorkingSchedule, StaffWorkCalendar]),
     StaffModule,
+    StoreModule,
     WorkingScheduleModule,
   ],
   controllers: [StaffWorkCalendarController],

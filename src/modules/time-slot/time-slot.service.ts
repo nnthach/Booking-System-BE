@@ -10,15 +10,16 @@ import { TimeSlot } from 'src/entities/time-slot.entity';
 import { Not, Repository } from 'typeorm';
 import { WorkingScheduleService } from '../working-schedule/working-schedule.service';
 import { StaffWorkCalendarService } from '../staff-work-calendar/staff-work-calendar.service';
+import { StaffService } from '../staff/staff.service';
 
 @Injectable()
 export class TimeSlotService {
   constructor(
     @InjectRepository(TimeSlot)
     private timeSlotRepository: Repository<TimeSlot>,
-
     private readonly workingScheduleService: WorkingScheduleService,
     private readonly staffWorkCalendarService: StaffWorkCalendarService,
+    private readonly staffService: StaffService,
   ) {}
 
   async create(createTimeSlotDto: CreateTimeSlotDto) {
@@ -45,7 +46,12 @@ export class TimeSlotService {
     return await this.timeSlotRepository.save(timeSlot);
   }
 
-  async findSlotByDateAndStaffId(staffId: number, date: string) {
+  // kiểm tra slot còn trống
+  async findSlotByDateAndStaffId(
+    staffId: number,
+    date: string,
+    storeId: number,
+  ) {
     const checkDayOfWeek = new Date(date);
     const dayOfWeek = checkDayOfWeek.getDay();
 
@@ -56,11 +62,15 @@ export class TimeSlotService {
     // 2. nếu client có truyền staff check xem staff có đi làm ko
     if (staffId) {
       const isStaffWorkOnDate =
-        await this.staffWorkCalendarService.findByStaffAndDate(staffId, date);
+        await this.staffWorkCalendarService.findByStaffAndDate(
+          staffId,
+          date,
+          storeId,
+        );
 
       // nếu ngày đó staff không làm thì return như này
       if (!isStaffWorkOnDate) {
-        return { message: 'Staff off on this day' };
+        throw new BadRequestException('Staff off on this day');
       }
     }
 
@@ -72,14 +82,15 @@ export class TimeSlotService {
 
     // 4. kiểm tra tgian từ client đã == endtime hôm nay chưa
     if (isToday && currentTime >= endTimeRequire) {
-      return { message: 'Please select tomorrow' };
+      throw new BadRequestException('Please select tomorrow');
     }
 
     // 5. nếu ngày quá khứ
     if (todayStr > date) {
-      return { message: 'Please select tomorrow' };
+      throw new BadRequestException('Please select tomorrow');
     }
 
+    // 6. lấy all slot theo staff và store nhưng exist các staffSlot đã booked
     // 6.1 chỉ lấy slot tgian sắp tới chưa hết hạn
     const query = this.timeSlotRepository
       .createQueryBuilder('ts')
@@ -97,17 +108,29 @@ export class TimeSlotService {
 
     // 6.2 loai tru staff da book trong staff slot
     if (staffId) {
+      const staffByStore = await this.staffService.getStaffByStoreId(storeId);
+      const staffIds = staffByStore.map((s) => s.id);
+
+      if (staffIds.length === 0) {
+        throw new BadRequestException('No staff in store');
+      }
+
       query.andWhere(
         `
-      NOT EXISTS (
-        SELECT 1
-        FROM \`staff-slots\` ss
-        WHERE ss.timeSlotId = ts.id
-          AND ss.staffId = :staffId
-          AND DATE(ss.slotDate) = :date
-      )
-      `,
-        { staffId, date },
+        NOT EXISTS (
+          SELECT 1
+          FROM \`staff-slots\` ss
+          WHERE ss.timeSlotId = ts.id
+            AND ss.slotDate = :date
+            AND ss.staffId IN (:...staffIds)
+            ${staffId ? 'AND ss.staffId = :staffId' : ''}
+        )
+        `,
+        {
+          date,
+          staffIds,
+          staffId,
+        },
       );
     }
 

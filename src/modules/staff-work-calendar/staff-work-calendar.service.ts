@@ -18,11 +18,13 @@ import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
 import { Between, DataSource, Repository } from 'typeorm';
 import { StaffWorkScheduleStatus } from 'src/enums/staffWorkSchedule.enum';
 import { JwtUser } from '../auth/dto/login-auth.dto';
+import { StoreService } from '../store/store.service';
 
 @Injectable()
 export class StaffWorkCalendarService {
   constructor(
     private readonly staffService: StaffService,
+    private readonly storeService: StoreService,
     private readonly workScheduleService: WorkingScheduleService,
     @InjectRepository(StaffWorkCalendar)
     private staffWorkCalendarRepository: Repository<StaffWorkCalendar>,
@@ -141,13 +143,16 @@ export class StaffWorkCalendarService {
   async findStaffWorkOnDate(
     date: string,
     timeSlotId: number,
+    storeId: number,
   ): Promise<number | null> {
     const rows: { staffId: number }[] = await this.dataSource.query(
       `
     SELECT swc.staffId
     FROM \`staff-work-calendar\` swc
+    INNER JOIN staffs s ON s.id = swc.staffId
     WHERE DATE(swc.workDate) = ?
       AND swc.status = 'REGISTER'
+      AND s.storeId = ?
       AND NOT EXISTS (
         SELECT 1
         FROM \`staff-slots\` ss
@@ -158,7 +163,7 @@ export class StaffWorkCalendarService {
     ORDER BY swc.staffId ASC
     LIMIT 1
     `,
-      [date, timeSlotId, date],
+      [date, storeId, timeSlotId, date],
     );
 
     console.log('rows', rows);
@@ -187,12 +192,19 @@ export class StaffWorkCalendarService {
     return staffWorkSchedule;
   }
 
-  async findByStaffAndDate(staffId: number, date: string) {
+  async findByStaffAndDate(staffId: number, date: string, storeId: number) {
     // 1. check staff
     const staff = await this.staffService.findOne(staffId);
     if (!staff) {
       throw new NotFoundException('Not found staff');
     }
+
+    // 1.2 check store
+    const store = await this.storeService.findOne(storeId);
+    if (!store) {
+      throw new NotFoundException('Not found store');
+    }
+
     // 2. convert string to date
     const workDate = parseDateOnly(date);
     if (!workDate || isNaN(workDate.getTime())) {
@@ -201,21 +213,24 @@ export class StaffWorkCalendarService {
       );
     }
     // 3. staff schedule
-    const staffWorkSchedule = await this.staffWorkCalendarRepository.findOne({
-      where: { staffId, workDate },
-      relations: ['workSchedule'],
-      select: {
-        id: true,
-        workDate: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        workSchedule: {
-          dayOfWeek: true,
-          status: true,
-        },
-      },
-    });
+    const staffWorkSchedule = await this.staffWorkCalendarRepository
+      .createQueryBuilder('swc')
+      .innerJoin('swc.staff', 'staff')
+      .innerJoin('staff.store', 'store')
+      .innerJoinAndSelect('swc.workSchedule', 'workSchedule')
+      .where('staff.id = :staffId', { staffId })
+      .andWhere('store.id = :storeId', { storeId })
+      .andWhere('swc.workDate = :workDate', { workDate })
+      .select([
+        'swc.id',
+        'swc.workDate',
+        'swc.startTime',
+        'swc.endTime',
+        'swc.status',
+        'workSchedule.dayOfWeek',
+        'workSchedule.status',
+      ])
+      .getOne();
 
     if (!staffWorkSchedule) {
       throw new NotFoundException(`Staff schedule not found for date ${date}`);
@@ -224,6 +239,7 @@ export class StaffWorkCalendarService {
     return staffWorkSchedule;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(id: number, updateStaffWorkCalendarDto: UpdateStaffWorkCalendarDto) {
     return `This action updates a #${id} staffWorkCalendar`;
   }
