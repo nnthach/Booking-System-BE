@@ -24,7 +24,6 @@ export class TransactionController {
 
   @Get('by-order/:orderCode')
   findOneByOrderCode(@Param('orderCode') orderCode: string) {
-    console.log('ordercode', orderCode);
     return this.transactionService.findOneByOrderCode(+orderCode);
   }
 

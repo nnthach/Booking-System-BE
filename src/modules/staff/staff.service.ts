@@ -41,11 +41,11 @@ export class StaffService {
     }
 
     // Gửi email email và password
-    this.mailService
-      .sendEmailWelcomeStaff(staff.fullName, staff.email, password)
-      .catch((err) => {
-        console.error('Send welcome staff email failed:', err);
-      });
+    await this.mailService.sendEmailWelcomeStaff(
+      staff.fullName,
+      staff.email,
+      password,
+    );
 
     const createStaff = this.staffRepository.create({
       userId: staff.id,
@@ -56,8 +56,9 @@ export class StaffService {
     return await this.staffRepository.save(createStaff);
   }
 
-  async findAll() {
+  async findAll(storeId: number) {
     return await this.staffRepository.find({
+      where: { storeId },
       relations: ['user'],
       select: {
         user: {

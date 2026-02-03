@@ -50,7 +50,6 @@ export class ServiceController {
   @Roles(UserRole.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
-    console.log('updateServiceDto', updateServiceDto);
     return this.serviceService.update(+id, updateServiceDto);
   }
 

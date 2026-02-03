@@ -123,9 +123,6 @@ export class StaffWorkCalendarService {
     const fromDate = startOfDay(parseDateOnly(workDateFrom));
     const toDate = endOfDay(parseDateOnly(workDateTo));
 
-    console.log('FROM', fromDate);
-    console.log('TO', toDate);
-
     // 2. get by work date input
     const schedule = await this.staffWorkCalendarRepository.find({
       where: {
@@ -134,7 +131,6 @@ export class StaffWorkCalendarService {
       },
     });
 
-    console.log('schedule', schedule);
     return schedule;
   }
 
@@ -165,8 +161,6 @@ export class StaffWorkCalendarService {
     `,
       [date, storeId, timeSlotId, date],
     );
-
-    console.log('rows', rows);
 
     return rows.length ? rows[0].staffId : null;
   }

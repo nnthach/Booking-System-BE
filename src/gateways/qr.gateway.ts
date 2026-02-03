@@ -44,7 +44,6 @@ export class PayOsGateway {
   async verifyPaymentWebhook(webhookData: any) {
     try {
       const verified = await this.payos.webhooks.verify(webhookData);
-      console.log('verified webhook 1', verified);
       return verified;
     } catch (error) {
       console.log('verify webhook err', error);

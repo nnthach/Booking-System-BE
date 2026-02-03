@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
+import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('staff')
 export class StaffController {
@@ -12,8 +13,9 @@ export class StaffController {
   }
 
   @Get()
-  findAll() {
-    return this.staffService.findAll();
+  @ApiQuery({ name: 'storeId', required: true, type: Number, example: 1 })
+  findAll(@Query('storeId') storeId: number) {
+    return this.staffService.findAll(storeId);
   }
 
   @Get(':id')

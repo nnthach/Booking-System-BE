@@ -149,8 +149,6 @@ export class UserService {
       Object.entries(updateUserDto).filter(([_, value]) => value !== undefined),
     );
 
-    console.log('update user isEmpty', isEmpty);
-
     if (!Object.keys(isEmpty).length) {
       throw new BadRequestException('Not any value to update');
     }

@@ -63,7 +63,6 @@ export class AuthService {
   }
 
   async verifyEmail(token: string) {
-    console.log('Token received in service:', token);
     try {
       const user = await this.userRepository.findOne({
         where: { emailVerificationToken: token },
@@ -95,7 +94,11 @@ export class AuthService {
   }
 
   login(user: User) {
-    const payload = { sub: user.id, email: user.email, role: user.role?.name || null };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role?.name || null,
+    };
     return {
       message: 'Login successfully',
       data: {

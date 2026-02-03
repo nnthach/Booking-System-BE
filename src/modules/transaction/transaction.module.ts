@@ -6,9 +6,15 @@ import { TransactionService } from './transaction.service';
 import { BookingModule } from '../booking/booking.module';
 import { HttpModule } from '@nestjs/axios';
 import { PayOsGateway } from 'src/gateways/qr.gateway';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Transaction]), BookingModule, HttpModule],
+  imports: [
+    TypeOrmModule.forFeature([Transaction]),
+    BookingModule,
+    HttpModule,
+    MailModule,
+  ],
   controllers: [TransactionController],
   providers: [TransactionService, PayOsGateway],
 })

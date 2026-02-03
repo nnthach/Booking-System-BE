@@ -10,6 +10,7 @@ import { TimeSlotModule } from '../time-slot/time-slot.module';
 import { BookingServiceModule } from '../booking-service/booking-service.module';
 import { Store } from 'src/entities/store.entity';
 import { StaffModule } from '../staff/staff.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { StaffModule } from '../staff/staff.module';
     TimeSlotModule,
     BookingServiceModule,
     StaffModule,
+    MailModule,
   ],
   controllers: [BookingController],
   providers: [BookingService],

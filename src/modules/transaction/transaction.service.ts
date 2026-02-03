@@ -12,6 +12,9 @@ import { BookingService } from '../booking/booking.service';
 import { PayOsGateway } from 'src/gateways/qr.gateway';
 import { PaymentMethodEnum } from 'src/enums/payment-method.enum';
 import { TransactionEnum } from 'src/enums/transaction.enum';
+import { MailService } from '../mail/mail.service';
+import { BookingStatus } from 'src/enums/booking.enum';
+import { BookingPaymentTypeEnum } from 'src/enums/booking-payment-type.enum';
 
 @Injectable()
 export class TransactionService {
@@ -22,6 +25,7 @@ export class TransactionService {
     private readonly bookingService: BookingService,
     private readonly payosQrGateway: PayOsGateway,
     private readonly dataSource: DataSource,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createTransactionDTO: CreateTransactionDto) {
@@ -66,7 +70,6 @@ export class TransactionService {
         expiredAt,
       };
       const url = await this.payosQrGateway.createPaymentLink(payload);
-      console.log('url', url);
       if (!url) {
         throw new InternalServerErrorException('Create payment link fail');
       }
@@ -88,7 +91,6 @@ export class TransactionService {
     if (!verifiedWebhook) {
       throw new BadRequestException('Invalid webhook signature');
     }
-    console.log('verifiedWebhook 2', verifiedWebhook);
     const { orderCode, code } = verifiedWebhook;
     const transaction = await this.transactionRepository.findOne({
       where: { orderCode },
@@ -99,10 +101,31 @@ export class TransactionService {
     if (transaction.status !== TransactionEnum.PENDING) {
       return { message: 'Transaction was completed before' };
     }
+    // neu payment success => send email
     if (code === '00') {
       await this.transactionRepository.update(transaction.id, {
         status: TransactionEnum.COMPLETED,
       });
+
+      const transactionDetail = await this.findOne(transaction.id);
+      if (!transactionDetail) {
+        throw new NotFoundException('Transaction not found');
+      }
+      
+      await this.bookingService.updateBookingStatus(
+        transaction.bookingId,
+        BookingStatus.CONFIRMED_PAYMENT,
+        BookingPaymentTypeEnum.ONLINE,
+      );
+
+      const bookingDetail = await this.bookingService.findOne(
+        transactionDetail.bookingId,
+      );
+
+      if (!bookingDetail) {
+        throw new NotFoundException('Booking not found');
+      }
+      await this.mailService.sendEmailBookingSuccess(bookingDetail);
     } else {
       await this.transactionRepository.update(transaction.id, {
         status: TransactionEnum.FAILED,
@@ -131,7 +154,6 @@ export class TransactionService {
   }
 
   async findOneByOrderCode(orderCode: number) {
-    console.log('orderCode', orderCode);
     const transaction = await this.transactionRepository.findOne({
       where: { orderCode },
     });
@@ -141,7 +163,6 @@ export class TransactionService {
     }
 
     const { bookingId } = transaction;
-    console.log('transaction', transaction);
 
     const bookingResult = await this.bookingService.findOne(bookingId);
 

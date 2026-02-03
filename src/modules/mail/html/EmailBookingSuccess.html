@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Thank you for your booking</title>
+    </head>
+    <body
+        style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, sans-serif;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+            border="0" style="background-color:#f4f4f4;">
+            <tr>
+                <td style="padding:40px 20px;">
+                    <table role="presentation" width="100%" cellspacing="0"
+                        cellpadding="0" border="0"
+                        style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.06); overflow:hidden;">
+
+                        <!-- Content -->
+                        <tr>
+                            <td style="padding:40px;">
+                                <h2
+                                    style="margin:0 0 16px; font-size:22px; color:#1f2937;">
+                                    Hi <span
+                                        style="color:#3b82f6;">${fullName}</span>
+                                    👋
+                                </h2>
+
+                                <p
+                                    style="margin:0 0 20px; font-size:16px; color:#4b5563; line-height:24px;">
+                                    Your booking has been
+                                    <strong>${bookingStatusText}</strong>.
+                                </p>
+
+                                <!-- Booking Info -->
+                                <div
+                                    style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:20px; margin-bottom:24px;">
+                                    <p style="margin:0 0 10px;"><strong>📍
+                                            Store:</strong> ${storeName}</p>
+                                    <p style="margin:0 0 10px;"><strong>💈
+                                            Staff:</strong> ${staffName}</p>
+                                    <p style="margin:0 0 10px;"><strong>📅
+                                            Date:</strong> ${slotDate}</p>
+                                    <p style="margin:0;"><strong>⏰
+                                            Time:</strong> ${timeSlot}</p>
+                                </div>
+
+                                <!-- Services -->
+                                <div style="margin-bottom:24px;">
+                                    <h3
+                                        style="margin:0 0 12px; font-size:18px; color:#1f2937;">Services</h3>
+                                    ${serviceList}
+                                </div>
+
+                                <!-- Payment -->
+                                <div
+                                    style="background:#ecfeff; border:1px solid #67e8f9; border-radius:10px; padding:20px;">
+                                    <p style="margin:0 0 10px;"><strong>💳
+                                            Payment method:</strong>
+                                        ${paymentTypeText}</p>
+                                    <p style="margin:0;"><strong>📌
+                                            Status:</strong> <span
+                                            style="color:#0ea5e9;">${bookingStatusText}</span></p>
+                                </div>
+
+                                <p
+                                    style="margin-top:32px; font-size:16px; color:#4b5563;">
+                                    Thank you for trusting us. We look forward
+                                    to seeing you!
+                                </p>
+
+                                <p
+                                    style="margin-top:24px; font-size:16px; color:#4b5563;">
+                                    — <strong>Thach Barber Team</strong>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- Footer -->
+                        <tr>
+                            <td
+                                style="background:#f8fafc; padding:24px; text-align:center;">
+                                <p
+                                    style="margin:0; font-size:13px; color:#6b7280;">©
+                                Thach Barber. All rights
+                                    reserved.</p>
+                            </td>
+                        </tr>
+
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -8,6 +8,8 @@ export class Store {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ nullable: true })
+  name: string;
   @Column()
   address: string;
 

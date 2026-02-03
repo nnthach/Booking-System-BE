@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -73,6 +74,22 @@ export class BookingService {
     date: string,
     timeSlotId: number,
   ) {
+    if (skipStaff && staffId === 0) {
+      const staffWorkOnDate = await this.staffWorkCalendar.findStaffWorkOnDate(
+        date,
+        timeSlotId,
+        storeId,
+      );
+
+      if (!staffWorkOnDate) {
+        throw new BadRequestException('No staff working on this time');
+      }
+
+      return staffWorkOnDate;
+    } else if (staffId && skipStaff) {
+      throw new BadRequestException('Skip staff or select staff only');
+    }
+
     await this.staffService.findOne(staffId);
 
     // check staff belong store
@@ -84,23 +101,6 @@ export class BookingService {
 
     if (!isStaffBelongStore) {
       throw new BadRequestException('Staff not belong to store');
-    }
-
-    if (skipStaff && staffId === 0) {
-      const staffWorkOnDate = await this.staffWorkCalendar.findStaffWorkOnDate(
-        date,
-        timeSlotId,
-        storeId,
-      );
-
-      if (!staffWorkOnDate) {
-        throw new BadRequestException('No staff working on this date');
-      }
-      console.log('staffWorkOnDate', staffWorkOnDate);
-
-      return staffWorkOnDate;
-    } else if (staffId && skipStaff) {
-      throw new BadRequestException('Skip staff or select staff only');
     }
 
     // kiem tra staffId co slot trong ko
@@ -249,6 +249,7 @@ export class BookingService {
         bookingServices: {
           service: true,
         },
+        store: true,
       },
       select: {
         // id: true,
@@ -283,5 +284,18 @@ export class BookingService {
         },
       },
     });
+  }
+
+  async updateBookingStatus(
+    id: number,
+    status: BookingStatus,
+    paymentType: BookingPaymentTypeEnum,
+  ) {
+    const booking = await this.findOne(id);
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+    await this.bookingRepository.update(id, { status, paymentType });
+    return this.findOne(id);
   }
 }

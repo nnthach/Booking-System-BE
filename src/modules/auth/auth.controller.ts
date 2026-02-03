@@ -43,7 +43,6 @@ export class AuthController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() loginDto: LoginAuthDto,
   ) {
-    console.log('req', req.user);
     return this.authService.login(req.user);
   }
 }
