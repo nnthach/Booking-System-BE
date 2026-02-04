@@ -6,4 +6,7 @@ export class CreateStoreDto {
 
   @StringRequired('image')
   image: string;
+
+  @StringRequired('name')
+  name: string;
 }

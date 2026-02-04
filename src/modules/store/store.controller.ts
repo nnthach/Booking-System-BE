@@ -6,11 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { StoreService } from './store.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { StoreStatus } from 'src/enums/store.enum';
 
 @Controller('store')
 export class StoreController {
@@ -34,8 +36,31 @@ export class StoreController {
   }
 
   @Get()
-  findAll() {
-    return this.storeService.findAll();
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: StoreStatus,
+    example: StoreStatus.OPEN,
+    description: 'Filter stores by status',
+  })
+  @ApiQuery({
+    name: 'order',
+    required: false,
+    enum: ['ASC', 'DESC'],
+    example: 'ASC',
+    description: 'Order stores by name',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search stores by name',
+  })
+  findAll(
+    @Query('status') status: StoreStatus,
+    @Query('order') order: 'ASC' | 'DESC',
+    @Query('search') search: string,
+  ) {
+    return this.storeService.findAll(status, order, search);
   }
 
   @Get(':id')

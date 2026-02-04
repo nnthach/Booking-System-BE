@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { CreateStaffSlotDto } from './dto/create-staff-slot.dto';
 import { UpdateStaffSlotDto } from './dto/update-staff-slot.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,6 +17,7 @@ export class StaffSlotService {
     @InjectRepository(StaffSlot)
     private staffSlotRepository: Repository<StaffSlot>,
 
+    @Inject(forwardRef(() => TimeSlotService))
     private readonly timeSlotService: TimeSlotService,
   ) {}
 
@@ -62,6 +68,30 @@ export class StaffSlotService {
     });
 
     return staff;
+  }
+
+  async countStaffBookedOnTimeSlot(
+    date: string,
+    storeId: number,
+  ): Promise<Map<number, number>> {
+    const query = await this.staffSlotRepository
+      .createQueryBuilder('ss')
+      .innerJoin('ss.staff', 's')
+      .select([
+        'ss.timeSlotId as timeSlotId',
+        'COUNT(DISTINCT ss.staffId) as staffCount',
+      ])
+      .where('ss.slotDate = :date', { date })
+      .andWhere('s.storeId = :storeId', { storeId })
+      .groupBy('ss.timeSlotId')
+      .getRawMany<{ timeSlotId: number; staffCount: number }>();
+
+    const map = new Map<number, number>();
+    query.forEach((row) => {
+      map.set(Number(row.timeSlotId), Number(row.staffCount));
+    });
+
+    return map;
   }
 
   update(id: number, updateStaffSlotDto: UpdateStaffSlotDto) {

@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Store } from 'src/entities/store.entity';
 import { Repository } from 'typeorm';
 import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
+import { StoreStatus } from 'src/enums/store.enum';
 
 @Injectable()
 export class StoreService {
@@ -17,6 +22,14 @@ export class StoreService {
   ) {}
 
   async create(createStoreDto: CreateStoreDto) {
+    const store = await this.storeRepository.findOne({
+      where: { name: createStoreDto.name },
+    });
+
+    if (store) {
+      throw new BadRequestException('Store name already exists');
+    }
+    
     return await this.storeRepository.save(createStoreDto);
   }
 
@@ -36,8 +49,22 @@ export class StoreService {
     return workingCalendars;
   }
 
-  async findAll() {
-    return await this.storeRepository.find();
+  async findAll(status?: StoreStatus, order?: 'ASC' | 'DESC', search?: string) {
+    const query = this.storeRepository.createQueryBuilder('stores');
+
+    if (status) {
+      query.where('stores.status = :status', { status });
+    }
+    if (search) {
+      query.andWhere('stores.name LIKE :search', { search: `%${search}%` });
+    }
+    if (order) {
+      query.orderBy('stores.name', order);
+    } else {
+      query.orderBy('stores.createdAt', 'DESC');
+    }
+
+    return await query.getMany();
   }
 
   async findOne(id: number) {

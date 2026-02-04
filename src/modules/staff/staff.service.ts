@@ -28,8 +28,8 @@ export class StaffService {
   ) {}
 
   async create(createStaffDto: CreateStaffDto) {
-    const randomPassword = '123456';
-    // const randomPassword = Date.now().toString();
+    // const randomPassword = '123456';
+    const randomPassword = Date.now().toString();
     const payload = {
       createStaffDto,
       password: randomPassword,
@@ -56,20 +56,31 @@ export class StaffService {
     return await this.staffRepository.save(createStaff);
   }
 
-  async findAll(storeId: number) {
-    return await this.staffRepository.find({
-      where: { storeId },
-      relations: ['user'],
-      select: {
-        user: {
-          fullName: true,
-          email: true,
-          roleId: true,
-          phoneNumber: true,
-          status: true,
-        },
-      },
-    });
+  async findAll(storeId: number, order: 'ASC' | 'DESC', search: string) {
+    const query = this.staffRepository.createQueryBuilder('staffs');
+
+    query
+      .innerJoin('staffs.user', 'user')
+      .addSelect([
+        'user.fullName',
+        'user.phoneNumber',
+        'user.email',
+        'user.avatar',
+      ]);
+
+    if (storeId) {
+      query.where('staffs.storeId=:storeId', { storeId });
+    }
+    if (order) {
+      query.orderBy('user.fullName', order);
+    } else {
+      query.orderBy('user.createdAt', 'DESC');
+    }
+    if (search) {
+      query.andWhere('user.fullName LIKE :search', { search: `%${search}%` });
+    }
+
+    return await query.getMany();
   }
 
   async getStaffByStoreId(storeId: number) {

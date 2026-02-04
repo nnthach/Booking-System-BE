@@ -6,12 +6,14 @@ import {
   Param,
   Request,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { JwtUser } from '../auth/dto/login-auth.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { BookingStatus } from 'src/enums/booking.enum';
 
 @Controller('booking')
 export class BookingController {
@@ -31,8 +33,23 @@ export class BookingController {
   }
 
   @Get()
-  findAll() {
-    return this.bookingService.findAll();
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: BookingStatus,
+    description: 'Filter bookings by status',
+  })
+  @ApiQuery({
+    name: 'order',
+    required: false,
+    enum: ['ASC', 'DESC'],
+    description: 'Order bookings by date',
+  })
+  findAll(
+    @Query('status') status: BookingStatus,
+    @Query('order') order: 'ASC' | 'DESC',
+  ) {
+    return this.bookingService.findAll(status, order);
   }
 
   @Get(':id')

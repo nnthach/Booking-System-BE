@@ -227,8 +227,18 @@ export class BookingService {
     return savedSlot;
   }
 
-  findAll() {
-    return `This action returns all booking`;
+  async findAll(status: BookingStatus, order: 'ASC' | 'DESC') {
+    const query = this.bookingRepository.createQueryBuilder('bookings');
+
+    if (status) {
+      query.where('bookings.status = :status', { status });
+    }
+    if (order) {
+      query.orderBy('bookings.createdAt', order);
+    } else {
+      query.orderBy('bookings.createdAt', 'DESC');
+    }
+    return await query.getMany();
   }
 
   async findOne(id: number, manager?: EntityManager) {

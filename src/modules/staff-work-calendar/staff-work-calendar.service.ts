@@ -19,6 +19,7 @@ import { Between, DataSource, Repository } from 'typeorm';
 import { StaffWorkScheduleStatus } from 'src/enums/staffWorkSchedule.enum';
 import { JwtUser } from '../auth/dto/login-auth.dto';
 import { StoreService } from '../store/store.service';
+import { FindListOfStaffWorkOnDateDTO } from './dto/staff-work-calendar.dto';
 
 @Injectable()
 export class StaffWorkCalendarService {
@@ -231,6 +232,27 @@ export class StaffWorkCalendarService {
     }
 
     return staffWorkSchedule;
+  }
+
+  async findListOfStaffWorkOnDate(
+    date: string,
+    storeId: number,
+  ): Promise<FindListOfStaffWorkOnDateDTO[]> {
+    const query = await this.staffWorkCalendarRepository
+      .createQueryBuilder('swc')
+      .innerJoin('swc.staff', 's')
+      .innerJoin('s.user', 'u')
+      .where('DATE(swc.workDate) = :date', { date })
+      .andWhere('swc.status = :status', { status: 'REGISTER' })
+      .andWhere('s.storeId = :storeId', { storeId })
+      .select([
+        'swc.staffId AS staffId',
+        'u.fullName AS staffName',
+        'u.email AS staffEmail',
+      ])
+      .getRawMany<FindListOfStaffWorkOnDateDTO>();
+
+    return query;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

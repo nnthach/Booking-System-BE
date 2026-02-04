@@ -39,15 +39,23 @@ export class ServiceService {
     }
   }
 
-  async findAll() {
-    try {
-      return await this.serviceRepository.find();
-    } catch (error: unknown) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Find all service failed');
+  async findAll(status: boolean, order: 'ASC' | 'DESC', search: string) {
+    const query = this.serviceRepository.createQueryBuilder('services');
+
+    if (status !== undefined) {
+      query.andWhere('services.status = :status', { status });
     }
+
+    if (order) {
+      query.orderBy('services.name', order);
+    } else {
+      query.orderBy('services.createdAt', 'DESC');
+    }
+
+    if (search) {
+      query.andWhere('services.name LIKE :search', { search: `%${search}%` });
+    }
+    return await query.getMany();
   }
 
   async findOne(id: number) {
@@ -88,7 +96,6 @@ export class ServiceService {
         throw new BadRequestException('Service name already existed');
       }
     }
-
 
     Object.assign(service, updateServiceDto); // đưa dữ liệu dto vô entity
 

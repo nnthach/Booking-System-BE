@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,6 +13,7 @@ import { Not, Repository } from 'typeorm';
 import { WorkingScheduleService } from '../working-schedule/working-schedule.service';
 import { StaffWorkCalendarService } from '../staff-work-calendar/staff-work-calendar.service';
 import { StaffService } from '../staff/staff.service';
+import { StaffSlotService } from '../staff-slot/staff-slot.service';
 
 @Injectable()
 export class TimeSlotService {
@@ -20,6 +23,9 @@ export class TimeSlotService {
     private readonly workingScheduleService: WorkingScheduleService,
     private readonly staffWorkCalendarService: StaffWorkCalendarService,
     private readonly staffService: StaffService,
+
+    @Inject(forwardRef(() => StaffSlotService))
+    private readonly staffSlotService: StaffSlotService,
   ) {}
 
   async create(createTimeSlotDto: CreateTimeSlotDto) {
@@ -59,7 +65,23 @@ export class TimeSlotService {
     const { startTime: startTimeRequire, endTime: endTimeRequire } =
       await this.workingScheduleService.getWorkingTimeOfDay(dayOfWeek);
 
-    // 2. nếu client có truyền staff check xem staff có đi làm ko
+    // 2. kiểm tra xem đã qua thời gian chưa
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const isToday = todayStr === date;
+    const currentTime = today.toTimeString().slice(0, 8);
+
+    // 3. kiểm tra tgian từ client đã == endtime hôm nay chưa
+    if (isToday && currentTime >= endTimeRequire) {
+      throw new BadRequestException('Please select tomorrow');
+    }
+
+    // 4. nếu ngày quá khứ
+    if (todayStr > date) {
+      throw new BadRequestException('Please select tomorrow');
+    }
+
+    // 5. nếu client có truyền staff check xem staff có đi làm ko
     if (staffId) {
       const isStaffWorkOnDate =
         await this.staffWorkCalendarService.findByStaffAndDate(
@@ -72,22 +94,6 @@ export class TimeSlotService {
       if (!isStaffWorkOnDate) {
         throw new BadRequestException('Staff off on this day');
       }
-    }
-
-    // 3. kiểm tra xem đã qua thời gian chưa
-    const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
-    const isToday = todayStr === date;
-    const currentTime = today.toTimeString().slice(0, 8);
-
-    // 4. kiểm tra tgian từ client đã == endtime hôm nay chưa
-    if (isToday && currentTime >= endTimeRequire) {
-      throw new BadRequestException('Please select tomorrow');
-    }
-
-    // 5. nếu ngày quá khứ
-    if (todayStr > date) {
-      throw new BadRequestException('Please select tomorrow');
     }
 
     // 6. lấy all slot theo staff và store nhưng exist các staffSlot đã booked
@@ -132,6 +138,26 @@ export class TimeSlotService {
           staffId,
         },
       );
+      // case skip staff
+    } else {
+      const timeSlots = await query.orderBy('ts.startTime', 'ASC').getMany();
+
+      const staffWorkOnDate =
+        await this.staffWorkCalendarService.findListOfStaffWorkOnDate(
+          date,
+          storeId,
+        );
+
+      const totalStaff = staffWorkOnDate.length;
+
+      // map<timeSlotId, numberOfStaffOnTimeSlot>
+      const numberOfStaffBookedOnTimeSlot =
+        await this.staffSlotService.countStaffBookedOnTimeSlot(date, storeId);
+
+      return timeSlots.filter((ts) => {
+        const booked = numberOfStaffBookedOnTimeSlot.get(ts.id) ?? 0;
+        return booked < totalStaff;
+      });
     }
 
     return query.orderBy('ts.startTime', 'ASC').getMany();

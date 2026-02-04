@@ -7,11 +7,12 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from 'src/enums/role.enum';
@@ -32,9 +33,31 @@ export class ServiceController {
     return this.serviceService.create(createServiceDto);
   }
 
-  @Get('all')
-  findAll() {
-    return this.serviceService.findAll();
+  @Get('')
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    type: Boolean,
+    description: 'Filter services by status',
+  })
+  @ApiQuery({
+    name: 'order',
+    required: false,
+    enum: ['ASC', 'DESC'],
+    example: 'ASC',
+    description: 'Order services by name',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search services by name',
+  })
+  findAll(
+    @Query('status') status: boolean,
+    @Query('order') order: 'ASC' | 'DESC',
+    @Query('search') search: string,
+  ) {
+    return this.serviceService.findAll(status, order, search);
   }
 
   @Get(':id')

@@ -1,5 +1,12 @@
 import { StoreStatus } from 'src/enums/store.enum';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Booking } from './booking.entity';
 import { Staff } from './staff.entity';
 
@@ -28,4 +35,10 @@ export class Store {
 
   @OneToMany(() => Staff, (staff) => staff.store)
   staffs: Staff[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
