@@ -14,6 +14,10 @@ import { Repository } from 'typeorm';
 import { UserStatus } from 'src/enums/user.enum';
 import { JwtService } from '@nestjs/jwt';
 import { AuthenUserHelpers } from 'src/utils/helpers';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { QueueNameEnum } from 'src/enums/queue-name.enum';
+import { EmailJobNameEnum } from 'src/enums/email-job-name.enum';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +26,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private jwtService: JwtService,
+    @InjectQueue(QueueNameEnum.EMAIL) private emailQueue: Queue,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<User | undefined> {
@@ -45,10 +50,17 @@ export class AuthService {
     try {
       const user = await this.userService.create(createUserDto);
 
-      await this.mailService.sendEmailVerification(
-        user?.email || '',
-        user?.emailVerificationToken || '',
+      // add job vô queue => NestJS gọi BullMQ => BullMQ ghi 1 job vào Redis => Redis giữ job delayed/bull:EMAIL:delayed => consumer lắng nghe và thực hiện
+      const job = await this.emailQueue.add(
+        EmailJobNameEnum.SEND_EMAIL_VERIFICATION,
+        {
+          email: user?.email || '',
+          token: user?.emailVerificationToken || '',
+        },
+        { delay: 2000 },
       );
+
+      console.log('job', job);
 
       return {
         message: 'Registration successful. Let open email to active account',

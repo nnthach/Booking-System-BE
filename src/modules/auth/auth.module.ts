@@ -11,6 +11,8 @@ import { StringValue } from 'ms';
 import { LocalStrategy } from './passport/local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './passport/jwt.strategy';
+import { BullModule } from '@nestjs/bullmq';
+import { QueueNameEnum } from 'src/enums/queue-name.enum';
 
 @Module({
   imports: [
@@ -29,6 +31,9 @@ import { JwtStrategy } from './passport/jwt.strategy';
         },
       }),
       inject: [ConfigService],
+    }),
+    BullModule.registerQueue({
+      name: QueueNameEnum.EMAIL,
     }),
   ],
   controllers: [AuthController],

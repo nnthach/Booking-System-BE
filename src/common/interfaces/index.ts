@@ -3,3 +3,14 @@ export interface IApiResponse<T> {
   message: string;
   data?: T;
 }
+
+export interface SendEmailVerificationJob {
+  email: string;
+  token: string;
+}
+
+export interface SendEmailWelcomeStaffJob {
+  fullName: string;
+  email: string;
+  password: string;
+}

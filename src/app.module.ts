@@ -16,11 +16,14 @@ import { WorkingScheduleModule } from './modules/working-schedule/working-schedu
 import { StaffWorkCalendarModule } from './modules/staff-work-calendar/staff-work-calendar.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
 import { StoreModule } from './modules/store/store.module';
+import { bullmqConfig } from './config/bullmq.config';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync(typeormConfig),
+    BullModule.forRootAsync(bullmqConfig),
     SeedModule,
     AuthModule,
     UserModule,
