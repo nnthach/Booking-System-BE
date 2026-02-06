@@ -12,7 +12,7 @@ import { User } from './user.entity';
 @Entity('roles')
 export class Role {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({
     type: 'enum',
@@ -20,14 +20,14 @@ export class Role {
     default: UserRole.USER,
     unique: true,
   })
-  name: UserRole;
+  name!: UserRole;
 
   @OneToMany(() => User, (user) => user.role)
-  users: User[];
+  users!: User[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

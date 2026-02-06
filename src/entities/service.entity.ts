@@ -12,35 +12,35 @@ import { BookingService } from './booking-service.entity';
 @Entity('services')
 export class Service {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ nullable: true })
-  description: string;
+  description!: string;
 
   @Column({ nullable: true })
-  image: string;
+  image!: string;
 
   @Column({ default: true })
-  status: boolean;
+  status!: boolean;
 
   @Column({ nullable: true })
-  duration: number;
+  duration!: number;
 
   @Column()
-  price: number;
+  price!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn()
-  deletedAt: Date;
+  deletedAt!: Date;
 
   @OneToMany(() => BookingService, (bookingService) => bookingService.service)
-  bookingServices: BookingService[];
+  bookingServices!: BookingService[];
 }

@@ -14,44 +14,44 @@ import { WorkingSchedule } from './work-schedule.entity';
 @Entity('staff-work-calendar')
 export class StaffWorkCalendar {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  staffId: number;
+  staffId!: number;
 
   @ManyToOne(() => Staff, (staff) => staff.staffWorkCalendar)
   @JoinColumn({ name: 'staffId' })
-  staff: Staff;
+  staff!: Staff;
 
   @Column()
-  workScheduleID: number;
+  workScheduleID!: number;
 
   @ManyToOne(
     () => WorkingSchedule,
     (workSchedule) => workSchedule.staffWorkCalendar,
   )
   @JoinColumn({ name: 'workScheduleID' })
-  workSchedule: WorkingSchedule;
+  workSchedule!: WorkingSchedule;
 
   @Column({ nullable: true })
-  workDate: Date;
+  workDate!: Date;
 
   @Column({ nullable: true })
-  startTime: string;
+  startTime!: string;
 
   @Column({ nullable: true })
-  endTime: string;
+  endTime!: string;
 
   @Column({
     type: 'enum',
     enum: StaffWorkScheduleStatus,
     default: StaffWorkScheduleStatus.NONE,
   })
-  status: StaffWorkScheduleStatus;
+  status!: StaffWorkScheduleStatus;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

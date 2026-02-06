@@ -11,23 +11,23 @@ import { StaffSlot } from './staff-slot.entity';
 @Entity('time-slots')
 export class TimeSlot {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'time', nullable: true })
-  startTime: string;
+  startTime!: string;
 
   @Column({ type: 'time', nullable: true })
-  endTime: string;
+  endTime!: string;
 
   @Column({ nullable: true, default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => StaffSlot, (staffSlot) => staffSlot.timeSlot)
-  staffSlot: StaffSlot[];
+  staffSlot!: StaffSlot[];
 }

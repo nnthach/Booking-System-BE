@@ -12,33 +12,33 @@ import { WorkScheduleStatus } from 'src/enums/workSchedule';
 @Entity('working-schedule')
 export class WorkingSchedule {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ nullable: true })
-  dayOfWeek: number;
+  dayOfWeek!: number;
 
   @Column({ type: 'time', nullable: true })
-  startTime: string;
+  startTime!: string;
 
   @Column({ type: 'time', nullable: true })
-  endTime: string;
+  endTime!: string;
 
   @Column({
     type: 'enum',
     enum: WorkScheduleStatus,
     default: WorkScheduleStatus.AVAILABLE,
   })
-  status: WorkScheduleStatus;
+  status!: WorkScheduleStatus;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(
     () => StaffWorkCalendar,
     (staffWorkCalendar) => staffWorkCalendar.workSchedule,
   )
-  staffWorkCalendar: StaffWorkCalendar[];
+  staffWorkCalendar!: StaffWorkCalendar[];
 }

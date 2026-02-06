@@ -14,40 +14,40 @@ import { PaymentMethodEnum } from 'src/enums/payment-method.enum';
 @Entity('transactions')
 export class Transaction {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ nullable: true })
-  bookingId: number;
+  bookingId!: number;
 
   @OneToOne(() => Booking, (booking) => booking.transaction)
   @JoinColumn({ name: 'bookingId' })
-  booking: Booking;
+  booking!: Booking;
 
   @Column()
-  totalPrice: number;
+  totalPrice!: number;
 
   @Column({
     type: 'enum',
     enum: PaymentMethodEnum,
   })
-  paymentMethod: PaymentMethodEnum;
+  paymentMethod!: PaymentMethodEnum;
 
   @Column({ nullable: true })
-  paymentUrl: string;
+  paymentUrl!: string;
 
   @Column({
     type: 'enum',
     enum: TransactionEnum,
     default: TransactionEnum.PENDING,
   })
-  status: TransactionEnum;
+  status!: TransactionEnum;
 
   @Column({ nullable: true })
-  orderCode: number;
+  orderCode!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -13,32 +13,32 @@ import { Staff } from './staff.entity';
 @Entity('stores')
 export class Store {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ nullable: true })
-  name: string;
+  name!: string;
   @Column()
-  address: string;
+  address!: string;
 
   @Column()
-  image: string;
+  image!: string;
 
   @Column({
     type: 'enum',
     enum: StoreStatus,
     default: StoreStatus.OPEN,
   })
-  status: StoreStatus;
+  status!: StoreStatus;
 
   @OneToMany(() => Booking, (booking) => booking.store)
-  bookings: Booking[];
+  bookings!: Booking[];
 
   @OneToMany(() => Staff, (staff) => staff.store)
-  staffs: Staff[];
+  staffs!: Staff[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

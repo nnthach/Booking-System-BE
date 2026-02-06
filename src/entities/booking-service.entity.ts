@@ -13,22 +13,22 @@ import { Booking } from './booking.entity';
 @Entity('booking-services')
 export class BookingService {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => Service, (service) => service.bookingServices)
   @JoinColumn({ name: 'serviceId' })
-  service: Service;
+  service!: Service;
 
   @ManyToOne(() => Booking, (booking) => booking.bookingServices)
   @JoinColumn({ name: 'bookingId' })
-  booking: Booking;
+  booking!: Booking;
 
   @Column()
-  price: number;
+  price!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

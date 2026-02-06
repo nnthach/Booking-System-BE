@@ -16,38 +16,38 @@ import { Booking } from './booking.entity';
 @Entity('staff-slots')
 export class StaffSlot {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  staffId: number;
+  staffId!: number;
 
   @ManyToOne(() => Staff, (staff) => staff.staffSlot)
   @JoinColumn({ name: 'staffId' })
-  staff: Staff;
+  staff!: Staff;
 
   @Column()
-  timeSlotId: number;
+  timeSlotId!: number;
 
   @ManyToOne(() => TimeSlot, (timeSlot) => timeSlot.staffSlot)
   @JoinColumn({ name: 'timeSlotId' })
-  timeSlot: TimeSlot;
+  timeSlot!: TimeSlot;
 
   @Column({ type: 'date' })
-  slotDate: Date;
+  slotDate!: Date;
 
   @Column({
     type: 'enum',
     enum: StaffSlotStatus,
     default: StaffSlotStatus.AVAILABLE,
   })
-  status: StaffSlotStatus;
+  status!: StaffSlotStatus;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Booking, (booking) => booking.staffSlot)
-  bookingsStaff: Booking[];
+  bookingsStaff!: Booking[];
 }

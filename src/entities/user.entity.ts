@@ -17,58 +17,58 @@ import { Staff } from './staff.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  password: string;
+  password!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column({ nullable: true })
-  fullName: string;
+  fullName!: string;
 
   @Column({ nullable: true })
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @Column({ nullable: true })
-  avatar: string;
+  avatar!: string;
 
   @Column({ nullable: true })
-  otp: string;
+  otp!: string;
 
   @Column({ nullable: true })
-  otpExpiration: Date;
+  otpExpiration!: Date;
 
   @Column()
-  roleId: number;
+  roleId!: number;
 
   @ManyToOne(() => Role) // muốn đi đến bảng nào
   @JoinColumn({ name: 'roleId' }) // cầm cái FK trỏ đến bảng đó
-  role: Role;
+  role!: Role;
 
   @Column({
     type: 'enum',
     enum: UserStatus,
     default: UserStatus.PENDING_VERIFICATION,
   })
-  status: UserStatus;
+  status!: UserStatus;
 
   @Column({ nullable: true, type: 'varchar' })
-  emailVerificationToken: string | null;
+  emailVerificationToken!: string | null;
 
   @Column({ nullable: true, type: 'datetime' })
-  emailVerificationExpire: Date | null;
+  emailVerificationExpire!: Date | null;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Booking, (booking) => booking.customer)
-  bookingsUser: Booking[]; // cánh cửa nhìn từ User qua Bookings
+  bookingsUser!: Booking[]; // cánh cửa nhìn từ User qua Bookings
 
   @OneToOne(() => Staff, (staff) => staff.user)
-  staff: Staff;
+  staff!: Staff;
 }

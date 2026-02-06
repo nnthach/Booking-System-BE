@@ -17,49 +17,49 @@ import { Store } from './store.entity';
 @Entity('staffs')
 export class Staff {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  userId: number;
+  userId!: number;
 
   @OneToOne(() => User, (user) => user.staff)
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user!: User;
 
   @Column({ nullable: true })
-  specialty: string;
+  specialty!: string;
 
   @Column({ nullable: true })
-  avatar: string;
+  avatar!: string;
 
   @Column({ nullable: true, default: 0 })
-  rating: number;
+  rating!: number;
 
   @Column({ nullable: true, default: 0 })
-  totalBookings: number;
+  totalBookings!: number;
 
   @Column({ nullable: true, default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(
     () => StaffWorkCalendar,
     (staffWorkCalendar) => staffWorkCalendar.staff,
   )
-  staffWorkCalendar: StaffWorkCalendar[];
+  staffWorkCalendar!: StaffWorkCalendar[];
 
   @OneToMany(() => StaffSlot, (staffSlot) => staffSlot.staff)
-  staffSlot: StaffSlot[];
+  staffSlot!: StaffSlot[];
 
   @Column({ nullable: true })
-  storeId: number;
+  storeId!: number;
 
   @ManyToOne(() => Store, (store) => store.staffs, { nullable: true })
   @JoinColumn({ name: 'storeId' })
-  store: Store;
+  store!: Store;
 }
