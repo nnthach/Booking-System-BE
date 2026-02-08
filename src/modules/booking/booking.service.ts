@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -20,6 +22,7 @@ import { TimeSlot } from 'src/entities/time-slot.entity';
 import { BookingPaymentTypeEnum } from 'src/enums/booking-payment-type.enum';
 import { Store } from 'src/entities/store.entity';
 import { StaffService } from '../staff/staff.service';
+import { TransactionService } from '../transaction/transaction.service';
 
 @Injectable()
 export class BookingService {
@@ -32,6 +35,8 @@ export class BookingService {
     private readonly timeSlotService: TimeSlotService,
     private readonly staffWorkCalendar: StaffWorkCalendarService,
     private readonly staffService: StaffService,
+    @Inject(forwardRef(() => TransactionService))
+    private readonly transactionService: TransactionService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -307,5 +312,11 @@ export class BookingService {
     }
     await this.bookingRepository.update(id, { status, paymentType });
     return this.findOne(id);
+  }
+
+  async cancelBooking(id: number) {
+    await this.findOne(id);
+
+    await this.bookingRepository.update(id, { status: BookingStatus.CANCELED });
   }
 }

@@ -25,7 +25,6 @@ export class MailService {
   }
 
   async sendEmailVerification(email: string, token: string) {
-    console.log('start run send email', email);
     try {
       const verificationUrl = `http://localhost:8080/api/auth/verify-email?token=${token}`;
 

@@ -1,3 +1,4 @@
 export enum QueueNameEnum {
-  EMAIL = 'email',
+  EMAIL = 'EMAIL',
+  CANCELLED_BOOKING = 'CANCELLED_BOOKING',
 }

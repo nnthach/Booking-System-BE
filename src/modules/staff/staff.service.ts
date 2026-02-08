@@ -8,15 +8,17 @@ import { UserService } from '../user/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Staff } from 'src/entities/staff.entity';
 import { Repository } from 'typeorm';
-import { MailService } from '../mail/mail.service';
 import { User } from 'src/entities/user.entity';
 import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
+import { InjectQueue } from '@nestjs/bullmq';
+import { QueueNameEnum } from 'src/enums/queue-name.enum';
+import { Queue } from 'bullmq';
+import { EmailJobNameEnum } from 'src/enums/email-job-name.enum';
 
 @Injectable()
 export class StaffService {
   constructor(
     private readonly userService: UserService,
-    private readonly mailService: MailService,
     @InjectRepository(Staff)
     private staffRepository: Repository<Staff>,
 
@@ -25,6 +27,8 @@ export class StaffService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectQueue(QueueNameEnum.EMAIL) private emailQueue: Queue,
   ) {}
 
   async create(createStaffDto: CreateStaffDto) {
@@ -40,11 +44,19 @@ export class StaffService {
       throw new InternalServerErrorException('Create Staff Failed');
     }
 
-    // Gửi email email và password
-    await this.mailService.sendEmailWelcomeStaff(
-      staff.fullName,
-      staff.email,
-      password,
+    await this.emailQueue.add(
+      EmailJobNameEnum.SEND_EMAIL_WELCOME_STAFF,
+      {
+        fullName: staff.fullName,
+        email: staff.email || '',
+        password: password || '',
+      },
+      {
+        delay: 2000,
+        removeOnComplete: {
+          age: 3600,
+        },
+      },
     );
 
     const createStaff = this.staffRepository.create({

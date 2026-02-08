@@ -7,9 +7,10 @@ import { User } from 'src/entities/user.entity';
 import { WorkingSchedule } from 'src/entities/work-schedule.entity';
 import { StaffSlot } from 'src/entities/staff-slot.entity';
 import { UserModule } from '../user/user.module';
-import { MailModule } from '../mail/mail.module';
 import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
 import { Store } from 'src/entities/store.entity';
+import { BullModule } from '@nestjs/bullmq';
+import { QueueNameEnum } from 'src/enums/queue-name.enum';
 
 @Module({
   imports: [
@@ -21,8 +22,10 @@ import { Store } from 'src/entities/store.entity';
       StaffWorkCalendar,
       Store,
     ]),
+    BullModule.registerQueue({
+      name: QueueNameEnum.EMAIL,
+    }),
     UserModule,
-    MailModule,
   ],
   controllers: [StaffController],
   providers: [StaffService],

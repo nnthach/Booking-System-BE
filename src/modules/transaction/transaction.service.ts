@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -12,20 +14,27 @@ import { BookingService } from '../booking/booking.service';
 import { PayOsGateway } from 'src/gateways/qr.gateway';
 import { PaymentMethodEnum } from 'src/enums/payment-method.enum';
 import { TransactionEnum } from 'src/enums/transaction.enum';
-import { MailService } from '../mail/mail.service';
 import { BookingStatus } from 'src/enums/booking.enum';
 import { BookingPaymentTypeEnum } from 'src/enums/booking-payment-type.enum';
+import { InjectQueue } from '@nestjs/bullmq';
+import { QueueNameEnum } from 'src/enums/queue-name.enum';
+import { Queue } from 'bullmq';
+import { EmailJobNameEnum } from 'src/enums/email-job-name.enum';
 
 @Injectable()
 export class TransactionService {
   constructor(
     @InjectRepository(Transaction)
     private transactionRepository: Repository<Transaction>,
-
+    @Inject(forwardRef(() => BookingService))
     private readonly bookingService: BookingService,
     private readonly payosQrGateway: PayOsGateway,
     private readonly dataSource: DataSource,
-    private readonly mailService: MailService,
+
+    @InjectQueue(QueueNameEnum.CANCELLED_BOOKING)
+    private cancelBookingQueue: Queue,
+    @InjectQueue(QueueNameEnum.EMAIL)
+    private emailQueue: Queue,
   ) {}
 
   async create(createTransactionDTO: CreateTransactionDto) {
@@ -75,6 +84,19 @@ export class TransactionService {
       }
       saveTransaction.paymentUrl = url.checkoutUrl;
       await manager.save(saveTransaction);
+
+      const job = await this.cancelBookingQueue.add(
+        'BOOKING_PAYMENT_TIMEOUT',
+        { transactionId: transaction.id },
+        {
+          delay: 15 * 1000 * 60,
+          removeOnComplete: {
+            age: 3600,
+          },
+        },
+      );
+
+      console.log('cancel booking job', job);
       return {
         transaction: saveTransaction,
         paymentUrl: url.checkoutUrl,
@@ -111,7 +133,7 @@ export class TransactionService {
       if (!transactionDetail) {
         throw new NotFoundException('Transaction not found');
       }
-      
+
       await this.bookingService.updateBookingStatus(
         transaction.bookingId,
         BookingStatus.CONFIRMED_PAYMENT,
@@ -125,7 +147,17 @@ export class TransactionService {
       if (!bookingDetail) {
         throw new NotFoundException('Booking not found');
       }
-      await this.mailService.sendEmailBookingSuccess(bookingDetail);
+      // await this.mailService.sendEmailBookingSuccess(bookingDetail);
+      await this.emailQueue.add(
+        EmailJobNameEnum.SEND_EMAIL_BOOKING_SUCCESS,
+        { bookingId: transactionDetail.bookingId },
+        {
+          delay: 2000,
+          removeOnComplete: {
+            age: 3600,
+          },
+        },
+      );
     } else {
       await this.transactionRepository.update(transaction.id, {
         status: TransactionEnum.FAILED,

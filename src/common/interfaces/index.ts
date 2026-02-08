@@ -14,3 +14,7 @@ export interface SendEmailWelcomeStaffJob {
   email: string;
   password: string;
 }
+
+export interface SendEmailBookingSuccessJob {
+  bookingId: number;
+}

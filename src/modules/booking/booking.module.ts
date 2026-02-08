@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { BookingController } from './booking.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,7 +10,9 @@ import { TimeSlotModule } from '../time-slot/time-slot.module';
 import { BookingServiceModule } from '../booking-service/booking-service.module';
 import { Store } from 'src/entities/store.entity';
 import { StaffModule } from '../staff/staff.module';
-import { MailModule } from '../mail/mail.module';
+import { BullModule } from '@nestjs/bullmq';
+import { QueueNameEnum } from 'src/enums/queue-name.enum';
+import { TransactionModule } from '../transaction/transaction.module';
 
 @Module({
   imports: [
@@ -20,7 +22,10 @@ import { MailModule } from '../mail/mail.module';
     TimeSlotModule,
     BookingServiceModule,
     StaffModule,
-    MailModule,
+    forwardRef(() => TransactionModule),
+    BullModule.registerQueue({
+      name: QueueNameEnum.CANCELLED_BOOKING,
+    }),
   ],
   controllers: [BookingController],
   providers: [BookingService],

@@ -51,16 +51,19 @@ export class AuthService {
       const user = await this.userService.create(createUserDto);
 
       // add job vô queue => NestJS gọi BullMQ => BullMQ ghi 1 job vào Redis => Redis giữ job delayed/bull:EMAIL:delayed => consumer lắng nghe và thực hiện
-      const job = await this.emailQueue.add(
+      await this.emailQueue.add(
         EmailJobNameEnum.SEND_EMAIL_VERIFICATION,
         {
           email: user?.email || '',
           token: user?.emailVerificationToken || '',
         },
-        { delay: 2000 },
+        {
+          delay: 2000,
+          removeOnComplete: {
+            age: 3600,
+          },
+        },
       );
-
-      console.log('job', job);
 
       return {
         message: 'Registration successful. Let open email to active account',

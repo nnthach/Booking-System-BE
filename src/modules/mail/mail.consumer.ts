@@ -4,13 +4,18 @@ import { MailService } from './mail.service';
 import { Job } from 'bullmq';
 import { EmailJobNameEnum } from 'src/enums/email-job-name.enum';
 import {
+  SendEmailBookingSuccessJob,
   SendEmailVerificationJob,
   SendEmailWelcomeStaffJob,
 } from 'src/common/interfaces';
+import { BookingService } from '../booking/booking.service';
 
 @Processor(QueueNameEnum.EMAIL)
 export class EmailConsumer extends WorkerHost {
-  constructor(private readonly mailService: MailService) {
+  constructor(
+    private readonly mailService: MailService,
+    private readonly bookingService: BookingService,
+  ) {
     super();
   }
 
@@ -18,7 +23,6 @@ export class EmailConsumer extends WorkerHost {
     switch (job.name as EmailJobNameEnum) {
       case EmailJobNameEnum.SEND_EMAIL_VERIFICATION: {
         const { email, token } = job.data as SendEmailVerificationJob;
-        console.log('run send email', email, token);
         await this.mailService.sendEmailVerification(email, token);
         break;
       }
@@ -28,6 +32,16 @@ export class EmailConsumer extends WorkerHost {
           job.data as SendEmailWelcomeStaffJob;
 
         await this.mailService.sendEmailWelcomeStaff(fullName, email, password);
+        break;
+      }
+
+      case EmailJobNameEnum.SEND_EMAIL_BOOKING_SUCCESS: {
+        const data = job.data as SendEmailBookingSuccessJob;
+
+        const booking = await this.bookingService.findOne(data.bookingId);
+        if (!booking) return;
+
+        await this.mailService.sendEmailBookingSuccess(booking);
         break;
       }
     }
