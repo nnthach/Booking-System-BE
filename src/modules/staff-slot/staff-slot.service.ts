@@ -94,6 +94,7 @@ export class StaffSlotService {
     return map;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(id: number, updateStaffSlotDto: UpdateStaffSlotDto) {
     return `This action updates a #${id} staffSlot`;
   }

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import type { Webhook } from '@payos/node';
 
 @Controller('transaction')
 export class TransactionController {
@@ -13,7 +14,7 @@ export class TransactionController {
   }
 
   @Post('/webhook')
-  paymentWebhook(@Body() webhookData: any) {
+  paymentWebhook(@Body() webhookData: Webhook) {
     return this.transactionService.handleWebhookPayOS(webhookData);
   }
 

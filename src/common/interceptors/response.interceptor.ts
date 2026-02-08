@@ -9,11 +9,13 @@ import {
 } from '@nestjs/common';
 import { map, Observable } from 'rxjs';
 import { IApiResponse } from '../interfaces';
+import { Request } from 'express';
 
 @Injectable()
-export class TransformInterceptor<T>
-  implements NestInterceptor<T, IApiResponse<T>>
-{
+export class TransformInterceptor<T> implements NestInterceptor<
+  T,
+  IApiResponse<T>
+> {
   private getDefaultMessage(method: string): string {
     switch (method) {
       case 'POST':
@@ -33,7 +35,7 @@ export class TransformInterceptor<T>
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<IApiResponse<T>> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
 
     return next.handle().pipe(
       map((data) => {
@@ -51,8 +53,10 @@ export class TransformInterceptor<T>
           finalMessage = data.message;
 
           // tách message ra khỏi data
-          const { message, ...rest } = data;
-          data = Object.keys(rest).length > 0 ? (rest as T) : undefined;
+          const { message, ...rest } = data as Record<string, unknown>;
+
+          const safeRest = rest as Record<string, unknown>;
+          data = Object.keys(safeRest).length > 0 ? (safeRest as T) : undefined;
         }
 
         // Lấy giá trị bên trong data làm data chính:

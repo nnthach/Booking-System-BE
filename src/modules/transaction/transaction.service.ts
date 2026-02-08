@@ -20,6 +20,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { QueueNameEnum } from 'src/enums/queue-name.enum';
 import { Queue } from 'bullmq';
 import { EmailJobNameEnum } from 'src/enums/email-job-name.enum';
+import { Webhook } from '@payos/node';
 
 @Injectable()
 export class TransactionService {
@@ -104,7 +105,7 @@ export class TransactionService {
     });
   }
 
-  async handleWebhookPayOS(webhookData: any): Promise<any> {
+  async handleWebhookPayOS(webhookData: Webhook) {
     if (!webhookData) {
       throw new BadRequestException('Webhook data không hợp lệ');
     }

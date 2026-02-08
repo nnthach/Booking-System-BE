@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PayOS } from '@payos/node';
+import { PayOS, Webhook } from '@payos/node';
 
 export interface PayOsPaymentLinkResponse {
   checkoutUrl: string;
@@ -28,7 +28,7 @@ export class PayOsGateway {
     description: string;
     returnUrl: string;
     cancelUrl: string;
-    expiredAt;
+    expiredAt: number;
   }): Promise<PayOsPaymentLinkResponse> {
     try {
       const response = await this.payos.paymentRequests.create(payload);
@@ -41,7 +41,7 @@ export class PayOsGateway {
     }
   }
 
-  async verifyPaymentWebhook(webhookData: any) {
+  async verifyPaymentWebhook(webhookData: Webhook) {
     try {
       const verified = await this.payos.webhooks.verify(webhookData);
       return verified;
