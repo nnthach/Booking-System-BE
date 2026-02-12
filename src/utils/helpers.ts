@@ -21,3 +21,31 @@ export class AuthenUserHelpers {
     return bcrypt.compare(inputPW, userPW);
   }
 }
+
+export class FormatConvertExcelRow {
+  getField(obj: Record<string, unknown>, candidates: string[]) {
+    // convert to lowercase (đồng nhất tên)
+    const lowerMap = Object.keys(obj).reduce(
+      (acc, key) => {
+        acc[key.toLowerCase().trim()] = obj[key];
+        return acc;
+      },
+      {} as Record<string, unknown>,
+    );
+
+    for (const candidate of candidates) {
+      const lower = candidate.toLowerCase().trim();
+      if (Object.prototype.hasOwnProperty.call(lowerMap, lower)) {
+        const value = lowerMap[lower];
+        if (typeof value === 'string') {
+          const v = value.trim();
+          if (v !== '') return v;
+        }
+        if (typeof value === 'number') {
+          return String(value);
+        }
+      }
+    }
+    return '';
+  }
+}

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -7,13 +8,16 @@ import { CreateStaffDto } from './dto/create-staff.dto';
 import { UserService } from '../user/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Staff } from 'src/entities/staff.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { QueueNameEnum } from 'src/enums/queue-name.enum';
 import { Queue } from 'bullmq';
 import { EmailJobNameEnum } from 'src/enums/email-job-name.enum';
+import * as XLSX from 'xlsx';
+import { FormatConvertExcelRow } from 'src/utils/helpers';
+import { Store } from 'src/entities/store.entity';
 
 @Injectable()
 export class StaffService {
@@ -29,6 +33,8 @@ export class StaffService {
     private userRepository: Repository<User>,
 
     @InjectQueue(QueueNameEnum.EMAIL) private emailQueue: Queue,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createStaffDto: CreateStaffDto) {
@@ -66,6 +72,152 @@ export class StaffService {
     });
 
     return await this.staffRepository.save(createStaff);
+  }
+
+  async createByImportExcel(file: Express.Multer.File) {
+    if (!file || !file.buffer) {
+      throw new BadRequestException('File not correct');
+    }
+
+    let workbook: XLSX.WorkBook;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    } catch {
+      throw new BadRequestException('Can not read excel file');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // lấy tên
+    const sheetName = workbook.SheetNames[0];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // lấy sheet theo name
+    const sheet = workbook.Sheets[sheetName];
+    // chuyển các row hành json
+    // eslint-disable-next-line , @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion
+    const rows = XLSX.utils.sheet_to_json(sheet, {
+      defval: '',
+    }) as Array<Record<string, string>>;
+
+    if (!rows || rows.length === 0) {
+      throw new BadRequestException('No data in file');
+    }
+
+    // luu tru ket qua
+    const results = {
+      created: 0,
+      failed: [] as Array<{ row: number; reason: string; data: any }>,
+    };
+
+    // get field form row
+    const formatField = new FormatConvertExcelRow();
+
+    // start create
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowIndex = i + 2; // Giả sử header ở dòng 1
+
+      const email = formatField.getField(row, [
+        'email',
+        'Email',
+        'mail',
+        'Mail',
+      ]);
+      const fullName = formatField.getField(row, [
+        'fullName',
+        'fullname',
+        'full name',
+        'FullName',
+        'hoTen',
+        'Họ tên',
+        'full_name',
+      ]);
+      const storeId = formatField.getField(row, [
+        'storeId',
+        'store_id',
+        'StoreId',
+        'Trạm',
+        'store',
+        'maTram',
+        'storeid',
+      ]);
+
+      // Validate cac field
+      if (!email || email === '') {
+        results.failed.push({
+          row: rowIndex,
+          reason: 'Missing email',
+          data: row,
+        });
+        continue;
+      }
+
+      if (!fullName || fullName === '') {
+        results.failed.push({
+          row: rowIndex,
+          reason: 'Missing fullName',
+          data: row,
+        });
+        continue;
+      }
+
+      if (!storeId || storeId === '') {
+        results.failed.push({
+          row: rowIndex,
+          reason: 'Missing storeId',
+          data: row,
+        });
+        continue;
+      }
+
+      const store = Number(storeId);
+      if (Number.isNaN(store) || store <= 0) {
+        results.failed.push({
+          row: rowIndex,
+          reason: `StoreID not correct: ${storeId}`,
+          data: row,
+        });
+        continue;
+      }
+
+      try {
+        // go on each row
+        await this.dataSource.transaction(async (manager) => {
+          // 1. check store
+          const station = await manager.findOne(Store, {
+            where: { id: store },
+          });
+          if (!station) {
+            throw new NotFoundException(`Store id=${store} not found`);
+          }
+
+          const payload = {
+            fullName: fullName,
+            email: email,
+            storeId: store,
+          };
+
+          // 2. create staff
+          await this.create(payload);
+        });
+
+        results.created++;
+      } catch (error) {
+        console.log('create staff by import err', error);
+        results.failed.push({
+          row: rowIndex,
+          reason: 'create staff by import err',
+          data: row,
+        });
+      }
+    }
+
+    return {
+      message: `Create success ${results.created} account, error ${results.failed.length} row`,
+      created: results.created,
+      failed: results.failed,
+    };
   }
 
   async findAll(storeId: number, order: 'ASC' | 'DESC', search: string) {

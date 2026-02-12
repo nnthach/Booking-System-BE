@@ -5,11 +5,11 @@ import {
 
 export class CreateStaffDto {
   @StringRequired('fullName')
-  fullName: string;
+  fullName!: string;
 
   @StringRequired('email')
-  email: string;
+  email!: string;
 
   @NumberRequired('store')
-  storeId: number;
+  storeId!: number;
 }

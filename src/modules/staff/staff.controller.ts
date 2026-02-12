@@ -6,10 +6,14 @@ import {
   Param,
   Delete,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
-import { ApiQuery } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type File from 'multer';
 
 @Controller('staff')
 export class StaffController {
@@ -18,6 +22,31 @@ export class StaffController {
   @Post()
   create(@Body() createStaffDto: CreateStaffDto) {
     return this.staffService.create(createStaffDto);
+  }
+
+  @Post('import-staff')
+  @ApiOperation({
+    summary: 'Admin create new staff by excel file',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'File Excel include 3 columns: email, fullName, storeId',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  createByImportExcel(
+    @UploadedFile()
+    file: Express.Multer.File,
+  ) {
+    return this.staffService.createByImportExcel(file);
   }
 
   @Get()
