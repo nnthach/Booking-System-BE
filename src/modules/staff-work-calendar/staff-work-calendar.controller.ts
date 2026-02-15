@@ -25,7 +25,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/enums/role.enum';
 
-@ApiTags('Staff register schedule')
+@ApiTags('Staff working schedule')
 @Controller('staff-work-calendar')
 export class StaffWorkCalendarController {
   constructor(
@@ -55,6 +55,56 @@ export class StaffWorkCalendarController {
     return this.staffWorkCalendarService.findAll();
   }
 
+  @Get('by-staff/:staffId')
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    type: String,
+    example: '2026-02-02',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    type: String,
+    example: '2026-02-02',
+  })
+  findStaffWorkingSchedule(
+    @Param('staffId') staffId: number,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    return this.staffWorkCalendarService.findStaffWorkingSchedule(
+      staffId,
+      fromDate,
+      toDate
+    );
+  }
+
+  @Get('of-each-store/:storeId')
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    type: String,
+    example: '2026-02-02',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    type: String,
+    example: '2026-02-02',
+  })
+  findStoreWorkingSchedule(
+    @Param('storeId') storeId: number,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    return this.staffWorkCalendarService.findStoreWorkingSchedule(
+      storeId,
+      fromDate,
+      toDate,
+    );
+  }
+
   @Get('by-staff-and-date')
   @ApiQuery({ name: 'staffId', required: true, type: Number, example: 1 })
   @ApiQuery({ name: 'storeId', required: true, type: Number, example: 1 })
@@ -64,7 +114,11 @@ export class StaffWorkCalendarController {
     @Query('storeId') storeId: number,
     @Query('date') date: string,
   ) {
-    return this.staffWorkCalendarService.findByStaffAndDate(staffId, date, storeId);
+    return this.staffWorkCalendarService.findByStaffAndDate(
+      staffId,
+      date,
+      storeId,
+    );
   }
 
   @ApiOperation({

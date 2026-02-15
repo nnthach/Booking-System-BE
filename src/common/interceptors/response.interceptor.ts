@@ -39,7 +39,6 @@ export class TransformInterceptor<T> implements NestInterceptor<
 
     return next.handle().pipe(
       map((data) => {
-        console.log('Data in response interceptor from controller:', data);
         // Kiểm tra dữ liệu đã theo định dạng ApiResponse chưa ({ success, message, data })
         if (data && typeof data === 'object' && 'success' in data) {
           return data as IApiResponse<T>;

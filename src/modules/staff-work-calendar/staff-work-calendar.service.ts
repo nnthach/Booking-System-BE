@@ -15,7 +15,14 @@ import { StaffService } from '../staff/staff.service';
 import { WorkingScheduleService } from '../working-schedule/working-schedule.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StaffWorkCalendar } from 'src/entities/staff-work-calendar.entity';
-import { Between, DataSource, Repository } from 'typeorm';
+import {
+  Between,
+  DataSource,
+  FindOptionsWhere,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { StaffWorkScheduleStatus } from 'src/enums/staffWorkSchedule.enum';
 import { JwtUser } from '../auth/dto/login-auth.dto';
 import { StoreService } from '../store/store.service';
@@ -105,6 +112,108 @@ export class StaffWorkCalendarService {
 
   findAll() {
     return `This action returns all staffWorkCalendar`;
+  }
+
+  async findStaffWorkingSchedule(
+    staffId: number,
+    fromDate: string,
+    toDate: string,
+  ) {
+    const whereCondition: FindOptionsWhere<StaffWorkCalendar> = { staffId };
+
+    if (fromDate && toDate) {
+      const fromDateNew = new Date(fromDate);
+      const toDateNew = new Date(toDate);
+      whereCondition.workDate = Between(fromDateNew, toDateNew);
+    } else if (fromDate) {
+      whereCondition.workDate = MoreThanOrEqual(new Date(fromDate));
+    } else if (toDate) {
+      whereCondition.workDate = LessThanOrEqual(new Date(toDate));
+    }
+
+    const data = await this.staffWorkCalendarRepository.find({
+      where: whereCondition,
+      order: { workDate: 'ASC' },
+    });
+
+    const staff = await this.staffService.findOne(staffId);
+
+    const group: Record<string, any[]> = {};
+
+    for (const item of data) {
+      const date = item.workDate.toISOString().split('T')[0];
+
+      if (!group[date]) {
+        group[date] = [];
+      }
+
+      group[date].push({
+        id: item.id,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        status: item.status,
+      });
+    }
+    // object to array
+    const result = Object.keys(group).map((date) => ({
+      date,
+      shifts: group[date],
+    }));
+    return { result, staff };
+  }
+
+  async findStoreWorkingSchedule(
+    storeId: number,
+    fromDate: string,
+    toDate: string,
+  ) {
+    const fromDateNew = new Date(fromDate);
+    const toDateNew = new Date(toDate);
+    const query = this.staffWorkCalendarRepository
+      .createQueryBuilder('swc')
+      .leftJoinAndSelect('swc.staff', 'staff')
+      .leftJoinAndSelect('staff.user', 'user')
+      .where('staff.storeId = :storeId', { storeId })
+      .orderBy('swc.workDate', 'ASC');
+
+    if (fromDate) {
+      query.andWhere('swc.workDate >= :fromDateNew', { fromDateNew });
+    }
+    if (toDate) {
+      query.andWhere('swc.workDate <= :toDateNew', { toDateNew });
+    }
+    
+    const data = await query
+      .orderBy('swc.workDate', 'ASC')
+      .addOrderBy('swc.startTime', 'ASC')
+      .getMany();
+
+    const group: Record<string, any[]> = {};
+
+    for (const item of data) {
+      const date = item.workDate.toISOString().split('T')[0];
+
+      if (!group[date]) {
+        group[date] = [];
+      }
+
+      group[date].push({
+        id: item.id,
+        staffId: item.staff.id,
+        staffName: item.staff.user.fullName,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        status: item.status,
+      });
+    }
+    // object to array
+    const result = Object.keys(group).map((date) => ({
+      date,
+      shifts: group[date],
+      total: group[date].length,
+    }));
+
+    return result;
   }
 
   async findStaffScheduleRegistered(
