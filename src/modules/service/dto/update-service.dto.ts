@@ -1,4 +1,3 @@
-
 import {
   BooleanNotRequired,
   NumberNotRequired,
@@ -8,6 +7,9 @@ import {
 export class UpdateServiceDto {
   @StringNotRequired('Name')
   name?: string;
+
+  @StringNotRequired('Image')
+  image?: string;
 
   @NumberNotRequired('Price')
   price?: number;

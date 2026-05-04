@@ -55,10 +55,10 @@ export class Booking {
   })
   paymentType!: BookingPaymentTypeEnum;
 
-  @Column({ type: 'date', nullable: true })
+  @Column()
   bookingDate!: Date;
 
-  @Column({ nullable: true })
+  @Column()
   totalPrice!: number;
 
   @CreateDateColumn()

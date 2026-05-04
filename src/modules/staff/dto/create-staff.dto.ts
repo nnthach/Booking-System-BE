@@ -10,6 +10,12 @@ export class CreateStaffDto {
   @StringRequired('email')
   email!: string;
 
+  @StringRequired('avatar')
+  avatar!: string;
+
+  @StringRequired('phoneNumber')
+  phoneNumber!: string;
+
   @NumberRequired('store')
   storeId!: number;
 }

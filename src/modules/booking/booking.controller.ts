@@ -52,6 +52,31 @@ export class BookingController {
     return this.bookingService.findAll(status, order);
   }
 
+  @Get('booking-of-store/:storeId')
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    type: String,
+    example: '2026-02-02',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    type: String,
+    example: '2026-02-02',
+  })
+  findBookingOfEachStore(
+    @Param('storeId') storeId: number,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    return this.bookingService.findBookingOfEachStore(
+      storeId,
+      fromDate,
+      toDate,
+    );
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingService.findOne(+id);

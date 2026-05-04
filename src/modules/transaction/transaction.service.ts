@@ -79,6 +79,7 @@ export class TransactionService {
         cancelUrl: 'http://localhost:3000/payment',
         expiredAt,
       };
+      console.log('payload', payload);
       const url = await this.payosQrGateway.createPaymentLink(payload);
       if (!url) {
         throw new InternalServerErrorException('Create payment link fail');
@@ -182,7 +183,7 @@ export class TransactionService {
 
     return {
       status: transaction.status,
-      paymentUrl: transaction.paymentUrl,
+      // paymentUrl: transaction.paymentUrl,
     };
   }
 

@@ -14,27 +14,27 @@ export class CreateBookingDto {
     example: [1, 2],
   })
   @ArrayRequired('serviceIds', Number, 1, 5)
-  serviceIds: number[];
+  serviceIds!: number[];
 
   @NumberNotRequired('staffId')
-  staffId: number;
+  staffId!: number;
 
   @NumberRequired('storeId')
-  storeId: number;
+  storeId!: number;
 
   @ApiProperty({
     description: 'YYYY-MM-DD format',
     example: '2025-12-15',
   })
   @StringRequired('date')
-  date: string;
+  date!: string;
 
   @StringNotRequired('note')
-  note: string;
+  note!: string;
 
   @NumberRequired('timeSlotId')
-  timeSlotId: number;
+  timeSlotId!: number;
 
   @BooleanNotRequired('skipStaff')
-  skipStaff: boolean;
+  skipStaff!: boolean;
 }

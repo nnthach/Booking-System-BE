@@ -8,17 +8,20 @@ import {
 
 export class CreateServiceDto {
   @StringRequired('Name')
-  name: string;
+  name!: string;
+
+  @StringRequired('Image')
+  image!: string;
 
   @NumberRequired('Price')
-  price: number;
+  price!: number;
 
   @StringNotRequired('Description')
-  description: string;
+  description!: string;
 
   @NumberNotRequired('Duration')
-  duration: number;
+  duration!: number;
 
   @BooleanRequired('Status')
-  status: boolean;
+  status!: boolean;
 }

@@ -183,6 +183,7 @@ export class BookingService {
         note,
         paymentType: BookingPaymentTypeEnum.PENDING,
         storeId,
+        bookingDate: new Date(date),
       });
 
       // 4. save booking
@@ -318,5 +319,49 @@ export class BookingService {
     await this.findOne(id);
 
     await this.bookingRepository.update(id, { status: BookingStatus.CANCELED });
+  }
+
+  async findBookingOfEachStore(
+    storeId: number,
+    fromDate: string,
+    toDate: string,
+  ) {
+    const fromDateNew = new Date(fromDate);
+    const toDateNew = new Date(toDate);
+
+    const query = this.bookingRepository
+      .createQueryBuilder('b')
+      .where('b.storeId =:storeId', { storeId });
+
+    if (fromDate) {
+      query.andWhere('b.bookingDate >= :fromDateNew', { fromDateNew });
+    }
+    if (toDate) {
+      query.andWhere('b.bookingDate <= :toDateNew', { toDateNew });
+    }
+
+    const data = await query.orderBy('b.bookingDate', 'ASC').getMany();
+
+    const group: Record<string, any[]> = {};
+
+    for (const item of data) {
+      const date = item.bookingDate.toISOString().split('T')[0];
+
+      if (!group[date]) {
+        group[date] = [];
+      }
+
+      group[date].push({
+        id: item.id,
+        status: item.status,
+      });
+    }
+
+    const result = Object.keys(group).map((date) => ({
+      date,
+      total: group[date].length,
+    }));
+
+    return result;
   }
 }

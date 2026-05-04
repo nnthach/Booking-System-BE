@@ -67,6 +67,7 @@ export class ServiceService {
       where: { id },
     });
 
+
     if (!service) {
       throw new NotFoundException('Not found service');
     }

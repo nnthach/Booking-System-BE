@@ -8,12 +8,14 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  Patch,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type File from 'multer';
+import { UpdateStaffDto } from './dto/update-staff.dto';
 
 @Controller('staff')
 export class StaffController {
@@ -22,6 +24,11 @@ export class StaffController {
   @Post()
   create(@Body() createStaffDto: CreateStaffDto) {
     return this.staffService.create(createStaffDto);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: number, @Body() updateStaffDto: UpdateStaffDto) {
+    return this.staffService.update(id, updateStaffDto);
   }
 
   @Post('import-staff')

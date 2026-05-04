@@ -18,6 +18,7 @@ import { EmailJobNameEnum } from 'src/enums/email-job-name.enum';
 import * as XLSX from 'xlsx';
 import { FormatConvertExcelRow } from 'src/utils/helpers';
 import { Store } from 'src/entities/store.entity';
+import { UpdateStaffDto } from './dto/update-staff.dto';
 
 @Injectable()
 export class StaffService {
@@ -72,6 +73,32 @@ export class StaffService {
     });
 
     return await this.staffRepository.save(createStaff);
+  }
+
+  async update(id: number, updateStaffDto: UpdateStaffDto) {
+    const staff = await this.staffRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!staff) {
+      throw new NotFoundException('Staff not found');
+    }
+
+    const { avatar, phoneNumber, ...rest } = updateStaffDto;
+
+    Object.assign(staff, rest);
+
+    if (avatar !== undefined) {
+      staff.user.avatar = avatar;
+    }
+
+    if (phoneNumber !== undefined) {
+      staff.user.phoneNumber = phoneNumber;
+    }
+
+    await this.userRepository.save(staff.user);
+    return await this.staffRepository.save(staff);
   }
 
   async createByImportExcel(file: Express.Multer.File) {
@@ -132,6 +159,19 @@ export class StaffService {
         'hoTen',
         'Họ tên',
         'full_name',
+      ]);
+      const phoneNumber = formatField.getField(row, [
+        'phoneNumber',
+        'phone',
+        'Phone',
+        'so_dien_thoai',
+        'sdt',
+      ]);
+      const avatar = formatField.getField(row, [
+        'avatar',
+        'Avatar',
+        'hinh_anh',
+        'image',
       ]);
       const storeId = formatField.getField(row, [
         'storeId',
@@ -196,6 +236,8 @@ export class StaffService {
             fullName: fullName,
             email: email,
             storeId: store,
+            avatar: avatar || '',
+            phoneNumber: phoneNumber || '',
           };
 
           // 2. create staff
@@ -225,11 +267,13 @@ export class StaffService {
 
     query
       .innerJoin('staffs.user', 'user')
+      .leftJoin('staffs.store', 'store')
       .addSelect([
         'user.fullName',
         'user.phoneNumber',
         'user.email',
         'user.avatar',
+        'store.name',
       ]);
 
     if (storeId) {
@@ -254,7 +298,7 @@ export class StaffService {
   async findOne(id: number) {
     const staff = await this.staffRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'store'],
       select: {
         user: {
           fullName: true,
@@ -262,6 +306,10 @@ export class StaffService {
           roleId: true,
           phoneNumber: true,
           status: true,
+          avatar: true,
+        },
+        store: {
+          name: true,
         },
       },
     });
