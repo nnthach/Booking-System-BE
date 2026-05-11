@@ -18,3 +18,7 @@ export interface SendEmailWelcomeStaffJob {
 export interface SendEmailBookingSuccessJob {
   bookingId: number;
 }
+
+export interface SendEmailBookingRemind15MinutesJob {
+  bookingId: number;
+}

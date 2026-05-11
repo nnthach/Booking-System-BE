@@ -236,6 +236,26 @@ export class BookingService {
   async findAll(status: BookingStatus, order: 'ASC' | 'DESC') {
     const query = this.bookingRepository.createQueryBuilder('bookings');
 
+    query
+      .innerJoin('bookings.customer', 'customer')
+      .leftJoin('bookings.store', 'store')
+      .leftJoin('bookings.staffSlot', 'staffSlot')
+      .leftJoin('staffSlot.timeSlot', 'timeSlot')
+      .leftJoin('staffSlot.staff', 'staff')
+      .addSelect([
+        'customer.fullName',
+        'customer.email',
+        'store.id',
+        'store.name',
+        'staffSlot.id',
+        'staffSlot.slotDate',
+        'staffSlot.status',
+        'timeSlot.id',
+        'timeSlot.startTime',
+        'timeSlot.endTime',
+        'staff.id',
+      ]);
+
     if (status) {
       query.where('bookings.status = :status', { status });
     }
@@ -277,10 +297,6 @@ export class BookingService {
           id: true,
           staff: {
             id: true,
-            avatar: true,
-            user: {
-              fullName: true,
-            },
           },
           timeSlot: {
             id: true,
@@ -288,15 +304,6 @@ export class BookingService {
             endTime: true,
           },
           slotDate: true,
-        },
-        bookingServices: {
-          id: true,
-          service: {
-            id: true,
-            name: true,
-            price: true,
-            image: true,
-          },
         },
       },
     });
@@ -312,6 +319,54 @@ export class BookingService {
       throw new NotFoundException('Booking not found');
     }
     await this.bookingRepository.update(id, { status, paymentType });
+    return this.findOne(id);
+  }
+
+  async updateBookingCheckIn(id: number) {
+    const booking = await this.findOne(id);
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    if (booking.status === BookingStatus.CHECKED_IN) {
+      throw new BadRequestException('Booking is already checked in');
+    }
+    if (booking.status !== BookingStatus.CONFIRMED_PAYMENT) {
+      throw new BadRequestException(
+        'Booking must be confirmed with payment before checking in',
+      );
+    }
+    await this.bookingRepository.update(id, {
+      status: BookingStatus.CHECKED_IN,
+    });
+    return this.findOne(id);
+  }
+
+  async updateBookingCompleted(id: number) {
+    const booking = await this.findOne(id);
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+    if (booking.status === BookingStatus.COMPLETED) {
+      throw new BadRequestException('Booking is already completed');
+    }
+    if (booking.status !== BookingStatus.CHECKED_IN) {
+      throw new BadRequestException(
+        'Booking must be checked in before completing',
+      );
+    }
+    const staffId = booking.staffSlot?.staff.id;
+
+    // Update booking status to COMPLETED
+    await this.bookingRepository.update(id, {
+      status: BookingStatus.COMPLETED,
+    });
+
+    // Increment staff totalBooking by 1
+    if (staffId) {
+      await this.staffService.incrementTotalBooking(staffId);
+    }
+
     return this.findOne(id);
   }
 

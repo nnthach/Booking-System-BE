@@ -4,6 +4,7 @@ import { MailService } from './mail.service';
 import { Job } from 'bullmq';
 import { EmailJobNameEnum } from 'src/enums/email-job-name.enum';
 import {
+  SendEmailBookingRemind15MinutesJob,
   SendEmailBookingSuccessJob,
   SendEmailVerificationJob,
   SendEmailWelcomeStaffJob,
@@ -42,6 +43,16 @@ export class EmailConsumer extends WorkerHost {
         if (!booking) return;
 
         await this.mailService.sendEmailBookingSuccess(booking);
+        break;
+      }
+
+      case EmailJobNameEnum.SEND_EMAIL_REMIND_15_MINUTES: {
+        const data = job.data as SendEmailBookingRemind15MinutesJob;
+
+        const booking = await this.bookingService.findOne(data.bookingId);
+        if (!booking) return;
+
+        await this.mailService.sendEmailBookingRemind15Minutes(booking);
         break;
       }
     }

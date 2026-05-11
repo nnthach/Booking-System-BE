@@ -396,4 +396,17 @@ export class StaffService {
 
     return { message: 'Delete staff success' };
   }
+
+  async incrementTotalBooking(staffId: number) {
+    const staff = await this.staffRepository.findOne({
+      where: { id: staffId },
+    });
+
+    if (!staff) {
+      throw new NotFoundException('Staff not found');
+    }
+
+    staff.totalBookings = (staff.totalBookings || 0) + 1;
+    await this.staffRepository.save(staff);
+  }
 }

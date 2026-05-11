@@ -128,7 +128,11 @@ export class UserService {
   }
 
   async findAll() {
-    return await this.userRepository.find();
+    const query = this.userRepository.createQueryBuilder('users');
+
+    query.leftJoin('users.role', 'role').addSelect(['role.id', 'role.name']);
+
+    return await query.getMany();
   }
 
   async findOne(id: number) {

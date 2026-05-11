@@ -34,9 +34,12 @@ export class PayOsGateway {
       const response = await this.payos.paymentRequests.create(payload);
 
       return response as PayOsPaymentLinkResponse;
-    } catch {
+    } catch (error) {
+      console.error('PayOS payment link creation failed:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       throw new InternalServerErrorException(
-        'Create PayOS payment link failed',
+        `Create PayOS payment link failed: ${errorMessage}`,
       );
     }
   }

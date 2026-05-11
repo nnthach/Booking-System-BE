@@ -184,4 +184,83 @@ export class MailService {
       }
     }
   }
+
+  async sendEmailBookingRemind15Minutes(booking: Booking) {
+    console.log('start send email', booking);
+    const { staff, timeSlot, slotDate } = booking.staffSlot;
+    const { fullName, email } = booking.customer;
+    const { bookingServices, store, paymentType, status } = booking;
+
+    try {
+      console.log('Sending email booking to:', booking);
+      const templatePath = path.join(
+        process.cwd(),
+        'src',
+        'modules',
+        'mail',
+        'html',
+        'EmailBookingRemind15Minutes.html',
+      );
+      let html = await readFile(templatePath, 'utf-8');
+
+      // 1. Mapping text
+      const bookingStatusText =
+        status === BookingStatus.CONFIRMED_PAYMENT
+          ? 'Confirmed'
+          : status === BookingStatus.CANCELED
+            ? 'Cancelled'
+            : 'Pending';
+
+      const paymentTypeText =
+        paymentType === BookingPaymentTypeEnum.OFFLINE
+          ? 'Cash'
+          : paymentType === BookingPaymentTypeEnum.ONLINE
+            ? 'Online payment (PayOS)'
+            : 'Unknown';
+
+      const timeSlotStr = `${timeSlot.startTime} - ${timeSlot.endTime}`;
+
+      // 2. Services HTML
+      const serviceListHtml = bookingServices
+        .map(
+          (bs) => `
+          <p style="margin:0 0 8px;">
+            • ${bs.service.name} — <strong>${bs.service.price.toLocaleString()}₫</strong>
+          </p>
+        `,
+        )
+        .join('');
+
+      // 3. Replace variables
+      html = html
+        .replace(/\$\{fullName\}/g, fullName || 'Customer')
+        .replace(/\$\{storeName\}/g, store?.name || 'Unknown Store')
+        .replace(/\$\{staffName\}/g, staff?.user.fullName || 'Unknown Staff')
+        .replace(
+          /\$\{slotDate\}/g,
+          new Date(slotDate).toISOString().split('T')[0],
+        )
+        .replace(/\$\{timeSlot\}/g, timeSlotStr)
+        .replace(/\$\{serviceList\}/g, serviceListHtml)
+        .replace(/\$\{paymentTypeText\}/g, paymentTypeText)
+        .replace(/\$\{bookingStatusText\}/g, bookingStatusText);
+
+      console.log('Final email HTML:', html);
+
+      await sgMail.send({
+        to: email,
+        from: this.fromEmail || '',
+        subject: 'Thank you for your booking',
+        html: html,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          error.message || 'Send email booking success failed',
+        );
+      } else {
+        throw new InternalServerErrorException('Unexpected error');
+      }
+    }
+  }
 }

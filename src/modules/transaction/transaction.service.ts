@@ -41,22 +41,26 @@ export class TransactionService {
   async create(createTransactionDTO: CreateTransactionDto) {
     return this.dataSource.transaction(async (manager) => {
       const { bookingId } = createTransactionDTO;
+      // tìm transaction
       const existingTransaction = await manager.findOne(Transaction, {
         where: {
           booking: { id: bookingId },
           status: TransactionEnum.PENDING,
         },
       });
+      // nếu transaction đã tồn tại thì return url payos để ngta thanh toán
       if (existingTransaction) {
         return {
           transaction: existingTransaction,
           paymentUrl: existingTransaction.paymentUrl,
         };
       }
+      // tìm booking
       const booking = await this.bookingService.findOne(bookingId, manager);
       if (!booking) {
         throw new NotFoundException('Booking not found');
       }
+      // tạo transaction
       const transaction = manager.create(Transaction, {
         totalPrice: booking.totalPrice,
         paymentMethod: PaymentMethodEnum.QR,
@@ -68,7 +72,10 @@ export class TransactionService {
       }
       const saveTransaction = await manager.save(transaction);
       const expiredAt = Math.floor(Date.now() / 1000) + 15 * 60;
-      const orderCode = saveTransaction.id;
+      // Generate unique orderCode: timestamp + random + transaction id
+      const orderCode = Math.floor(
+        Date.now() / 1000 + Math.random() * 10000 + saveTransaction.id,
+      );
       saveTransaction.orderCode = orderCode;
       await manager.save(saveTransaction);
       const payload = {
@@ -80,6 +87,7 @@ export class TransactionService {
         expiredAt,
       };
       console.log('payload', payload);
+      // tạo link thanh toán với PayOS
       const url = await this.payosQrGateway.createPaymentLink(payload);
       if (!url) {
         throw new InternalServerErrorException('Create payment link fail');
@@ -87,6 +95,7 @@ export class TransactionService {
       saveTransaction.paymentUrl = url.checkoutUrl;
       await manager.save(saveTransaction);
 
+      // job queue sau 15p nếu chưa thanh toán thì cancelled
       const job = await this.cancelBookingQueue.add(
         'BOOKING_PAYMENT_TIMEOUT',
         { transactionId: transaction.id },

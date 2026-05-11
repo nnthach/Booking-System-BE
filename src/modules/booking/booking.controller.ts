@@ -7,6 +7,7 @@ import {
   Request,
   UseGuards,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -80,5 +81,14 @@ export class BookingController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingService.findOne(+id);
+  }
+  @Patch(':id/check-in')
+  updateBookingCheckIn(@Param('id') id: string) {
+    return this.bookingService.updateBookingCheckIn(+id);
+  }
+
+  @Patch(':id/completed')
+  updateBookingCompleted(@Param('id') id: string) {
+    return this.bookingService.updateBookingCompleted(+id);
   }
 }
